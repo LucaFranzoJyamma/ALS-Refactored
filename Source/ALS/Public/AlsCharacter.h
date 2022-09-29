@@ -271,7 +271,10 @@ private:
 
 	FGameplayTag CalculateActualGait(const FGameplayTag& MaxAllowedGaitTag) const;
 
-	bool CanSprint() const;
+	//@JYAMMA MOD begin: added virtual and protected
+protected:
+	virtual bool CanSprint() const;
+	//@JYAMMA MOD end: added virtual and protected
 
 	// Overlay Mode
 
