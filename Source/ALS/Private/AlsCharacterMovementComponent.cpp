@@ -106,7 +106,8 @@ FSavedMovePtr FAlsNetworkPredictionData::AllocateNewMove()
 	return MakeShared<FAlsSavedMove>();
 }
 
-UAlsCharacterMovementComponent::UAlsCharacterMovementComponent()
+UAlsCharacterMovementComponent::UAlsCharacterMovementComponent(const FObjectInitializer& ObjectInitializer)//JYAMMA MOD: added ObjectInitializer
+:Super(ObjectInitializer)//JYAMMA MOD: added super in order to handle ObjectInitializer
 {
 	SetNetworkMoveDataContainer(MoveDataContainer);
 

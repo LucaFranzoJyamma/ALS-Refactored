@@ -110,7 +110,7 @@ public:
 	FAlsPhysicsRotationDelegate OnPhysicsRotation;
 
 public:
-	UAlsCharacterMovementComponent();
+	UAlsCharacterMovementComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());//JYAMMA MOD: added ObjectInitializer
 
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* Property) const override;
