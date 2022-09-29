@@ -245,7 +245,7 @@ public:
 	void PlayQuickStopAnimation();
 
 	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance")
-	void PlayTransitionAnimation(UAnimSequenceBase* Animation, float BlendInTime = 0.2f, float BlendOutTime = 0.2f,
+	virtual void PlayTransitionAnimation(UAnimSequenceBase* Animation, float BlendInTime = 0.2f, float BlendOutTime = 0.2f, //@JYAMMA MOD: added virtual
 	                             float PlayRate = 1.0f, float StartTime = 0.0f, bool bFromStandingIdleOnly = false);
 
 	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance")
