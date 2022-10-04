@@ -305,6 +305,7 @@ void AAlsCharacter::RefreshVisibilityBasedAnimTickOption() const
 
 void AAlsCharacter::SetViewMode(const FGameplayTag& NewModeTag)
 {
+	checkf(NewModeTag.IsValid() && NewModeTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.ViewMode",true)), TEXT("Invalid Tag on SetViewMode"));//JYAMMA MOD: implemented consistency check
 	if (ViewMode != NewModeTag)
 	{
 		ViewMode = NewModeTag;
@@ -448,6 +449,7 @@ void AAlsCharacter::ServerSetDesiredAiming_Implementation(const bool bNewAiming)
 
 void AAlsCharacter::SetDesiredRotationMode(const FGameplayTag& NewModeTag)
 {
+	checkf(NewModeTag.IsValid() && NewModeTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.RotationMode",true)), TEXT("Invalid Tag on SetDesiredRotationMode"));//JYAMMA MOD: implemented consistency check
 	if (DesiredRotationMode != NewModeTag)
 	{
 		DesiredRotationMode = NewModeTag;
@@ -573,6 +575,7 @@ void AAlsCharacter::RefreshRotationMode()
 
 void AAlsCharacter::SetDesiredStance(const FGameplayTag& NewStanceTag)
 {
+	checkf(NewStanceTag.IsValid() && NewStanceTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.Stance",true)), TEXT("Invalid Tag on SetDesiredStance"));//JYAMMA MOD: implemented consistency check
 	if (DesiredStance != NewStanceTag)
 	{
 		DesiredStance = NewStanceTag;
@@ -658,6 +661,7 @@ void AAlsCharacter::OnStanceChanged_Implementation(const FGameplayTag& PreviousS
 
 void AAlsCharacter::SetDesiredGait(const FGameplayTag& NewGaitTag)
 {
+	checkf(NewGaitTag.IsValid() && NewGaitTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.Gait",true)), TEXT("Invalid Tag on SetDesiredGait"));//JYAMMA MOD: implemented consistency check
 	if (DesiredGait != NewGaitTag)
 	{
 		DesiredGait = NewGaitTag;
@@ -776,6 +780,8 @@ bool AAlsCharacter::CanSprint() const
 
 void AAlsCharacter::SetOverlayMode(const FGameplayTag& NewModeTag)
 {
+	checkf(NewModeTag.IsValid() && NewModeTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.OverlayMode",true)), TEXT("Invalid Tag on SetOverlayMode"));//JYAMMA MOD: implemented consistency check
+
 	if (OverlayMode != NewModeTag)
 	{
 		const auto PreviousMode{OverlayMode};

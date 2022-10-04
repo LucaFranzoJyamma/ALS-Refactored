@@ -34,20 +34,20 @@ protected:
 		ReplicatedUsing = "OnReplicated_DesiredAiming")
 	bool bDesiredAiming;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Als Character|Desired State", Replicated)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Als Character|Desired State", Replicated, meta=(Categories="Als.RotationMode"))//@JYAMMA MOD: @TagFilter filtred gameplay tags
 	FGameplayTag DesiredRotationMode{AlsRotationModeTags::LookingDirection};
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Als Character|Desired State", Replicated)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Als Character|Desired State", Replicated, meta=(Categories="Als.Stance"))//@JYAMMA MOD: @TagFilter filtred gameplay tags
 	FGameplayTag DesiredStance{AlsStanceTags::Standing};
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Als Character|Desired State", Replicated)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Als Character|Desired State", Replicated, meta=(Categories="Als.Gait"))//@JYAMMA MOD: @TagFilter filtred gameplay tags
 	FGameplayTag DesiredGait{AlsGaitTags::Running};
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Als Character|Desired State", Replicated)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Als Character|Desired State", Replicated, meta=(Categories="Als.ViewMode"))//@JYAMMA MOD: @TagFilter filtred gameplay tags
 	FGameplayTag ViewMode{AlsViewModeTags::ThirdPerson};
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Als Character|Desired State",
-		ReplicatedUsing = "OnReplicated_OverlayMode")
+		ReplicatedUsing = "OnReplicated_OverlayMode", meta=(Categories="Als.OverlayMode"))//@JYAMMA MOD: @TagFilter filtred gameplay tags
 	FGameplayTag OverlayMode{AlsOverlayModeTags::Default};
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State|Als Character", Transient)
@@ -137,7 +137,7 @@ public:
 public:
 	const FGameplayTag& GetViewMode() const;
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character", Meta = (AutoCreateRefTerm = "NewModeTag"))
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character", Meta = (AutoCreateRefTerm = "NewModeTag", GameplayTagFilter="Als.ViewMode"))//JYAMMA MOD: added @TagFilter
 	void SetViewMode(const FGameplayTag& NewModeTag);
 
 private:
@@ -185,7 +185,7 @@ protected:
 public:
 	const FGameplayTag& GetDesiredRotationMode() const;
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character", Meta = (AutoCreateRefTerm = "NewModeTag"))
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character", Meta = (AutoCreateRefTerm = "NewModeTag", GameplayTagFilter="Als.RotationMode"))//JYAMMA MOD: added @TagFilter
 	void SetDesiredRotationMode(const FGameplayTag& NewModeTag);
 
 private:
@@ -211,7 +211,7 @@ protected:
 public:
 	const FGameplayTag& GetDesiredStance() const;
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character", Meta = (AutoCreateRefTerm = "NewStanceTag"))
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character", Meta = (AutoCreateRefTerm = "NewStanceTag", GameplayTagFilter="Als.Stance"))//JYAMMA MOD: added @TagFilter
 	void SetDesiredStance(const FGameplayTag& NewStanceTag);
 
 private:
@@ -245,7 +245,7 @@ protected:
 public:
 	const FGameplayTag& GetDesiredGait() const;
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character", Meta = (AutoCreateRefTerm = "NewGaitTag"))
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character", Meta = (AutoCreateRefTerm = "NewGaitTag", GameplayTagFilter="Als.Gait"))//JYAMMA MOD: added @TagFilter
 	void SetDesiredGait(const FGameplayTag& NewGaitTag);
 
 private:
@@ -281,7 +281,7 @@ protected:
 public:
 	const FGameplayTag& GetOverlayMode() const;
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character", Meta = (AutoCreateRefTerm = "NewModeTag"))
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character", Meta = (AutoCreateRefTerm = "NewModeTag", GameplayTagFilter="Als.OverlayMode"))//JYAMMA MOD: added @TagFilter
 	void SetOverlayMode(const FGameplayTag& NewModeTag);
 
 private:
