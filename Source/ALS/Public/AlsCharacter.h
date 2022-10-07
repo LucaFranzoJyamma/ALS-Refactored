@@ -266,13 +266,12 @@ protected:
 
 private:
 	void RefreshGait();
-
-	FGameplayTag CalculateMaxAllowedGait() const;
-
-	FGameplayTag CalculateActualGait(const FGameplayTag& MaxAllowedGaitTag) const;
-
 	//@JYAMMA MOD begin: added virtual and protected
 protected:
+	virtual FGameplayTag CalculateMaxAllowedGait() const;
+
+	virtual FGameplayTag CalculateActualGait(const FGameplayTag& MaxAllowedGaitTag) const;
+
 	virtual bool CanSprint() const;
 	//@JYAMMA MOD end: added virtual and protected
 
