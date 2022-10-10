@@ -142,7 +142,7 @@ private:
 	bool bSkipEffectsWhenInAir;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Sound", Meta = (AllowPrivateAccess))
-	bool bSpawnSound{true};
+	bool bSpawnSound{false};
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Sound", Meta = (AllowPrivateAccess, ClampMin = 0, ForceUnits = "x"))
 	float SoundVolumeMultiplier{1.0f};
