@@ -155,10 +155,10 @@ UAlsCharacterMovementComponent::UAlsCharacterMovementComponent(const FObjectInit
 bool UAlsCharacterMovementComponent::CanEditChange(const FProperty* Property) const
 {
 	return Super::CanEditChange(Property) &&
-	       !(Property->GetFName() == GET_MEMBER_NAME_CHECKED(ThisClass, bIgnoreBaseRotation) ||
-	         Property->GetFName() == GET_MEMBER_NAME_CHECKED(ThisClass, RotationRate) ||
-	         Property->GetFName() == GET_MEMBER_NAME_CHECKED(ThisClass, bUseControllerDesiredRotation) ||
-	         Property->GetFName() == GET_MEMBER_NAME_CHECKED(ThisClass, bOrientRotationToMovement));
+	       Property->GetFName() != GET_MEMBER_NAME_CHECKED(ThisClass, bIgnoreBaseRotation) &&
+	       Property->GetFName() != GET_MEMBER_NAME_CHECKED(ThisClass, RotationRate) &&
+	       Property->GetFName() != GET_MEMBER_NAME_CHECKED(ThisClass, bUseControllerDesiredRotation) &&
+	       Property->GetFName() != GET_MEMBER_NAME_CHECKED(ThisClass, bOrientRotationToMovement);
 }
 #endif
 
