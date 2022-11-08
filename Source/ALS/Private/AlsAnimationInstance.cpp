@@ -1422,12 +1422,14 @@ void UAlsAnimationInstance::RefreshDynamicTransition()
 void UAlsAnimationInstance::PlayQueuedDynamicTransitionAnimation()
 {
 	check(IsInGameThread())
-
-	PlaySlotAnimationAsDynamicMontage(TransitionsState.QueuedDynamicTransitionAnimation, UAlsConstants::TransitionSlot(),
-	                                  Settings->Transitions.DynamicTransitionBlendTime, Settings->Transitions.DynamicTransitionBlendTime,
-	                                  Settings->Transitions.DynamicTransitionPlayRate, 1, 0.0f);
-
-	TransitionsState.QueuedDynamicTransitionAnimation = nullptr;
+	if(nullptr != TransitionsState.QueuedDynamicTransitionAnimation)
+	{
+		PlaySlotAnimationAsDynamicMontage(TransitionsState.QueuedDynamicTransitionAnimation, UAlsConstants::TransitionSlot(),
+										  Settings->Transitions.DynamicTransitionBlendTime, Settings->Transitions.DynamicTransitionBlendTime,
+										  Settings->Transitions.DynamicTransitionPlayRate, 1, 0.0f);
+	
+		TransitionsState.QueuedDynamicTransitionAnimation = nullptr;
+	}
 }
 
 bool UAlsAnimationInstance::IsRotateInPlaceAllowed()

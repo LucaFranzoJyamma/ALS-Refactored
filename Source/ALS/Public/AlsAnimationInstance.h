@@ -264,7 +264,8 @@ private:
 
 	void RefreshDynamicTransition();
 
-	void PlayQueuedDynamicTransitionAnimation();
+protected:
+	virtual void PlayQueuedDynamicTransitionAnimation();
 
 	// Rotate In Place
 
@@ -281,8 +282,9 @@ public:
 
 private:
 	void RefreshTurnInPlace(float DeltaTime);
-
-	void PlayQueuedTurnInPlaceAnimation();
+	
+protected:
+	virtual void PlayQueuedTurnInPlaceAnimation();
 
 	// Ragdolling
 
