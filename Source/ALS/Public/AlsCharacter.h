@@ -341,9 +341,9 @@ public:
 
 private:
 	void SetInputDirection(FVector NewInputDirection);
-
+protected:
 	void RefreshLocomotionLocationAndRotation(float DeltaTime);
-
+private:
 	void RefreshLocomotion(float DeltaTime);
 
 	// Jumping
