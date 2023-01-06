@@ -21,7 +21,7 @@ class ALS_API AAlsCharacter : public ACharacter
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Als Character")
+	UPROPERTY(/*VisibleDefaultsOnly,*/ BlueprintReadOnly, Category = "Als Character")//@JYAMMA MOD: removed visibledefaultsOnly in order to fix noise on bp visualization
 	TObjectPtr<UAlsCharacterMovementComponent> AlsCharacterMovement;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Settings|Als Character")
