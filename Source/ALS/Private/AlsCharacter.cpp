@@ -662,7 +662,6 @@ void AAlsCharacter::OnStanceChanged_Implementation(const FGameplayTag& PreviousS
 
 void AAlsCharacter::SetDesiredGait(const FGameplayTag& NewDesiredGait)
 {
-	checkf(NewDesiredGait.IsValid() && NewDesiredGait.MatchesTag(FGameplayTag::RequestGameplayTag("Als.Gait",true)), TEXT("Invalid Tag on SetDesiredGait"));//JYAMMA MOD: implemented consistency check
 	if (DesiredGait != NewDesiredGait)
 	{
 		DesiredGait = NewDesiredGait;
