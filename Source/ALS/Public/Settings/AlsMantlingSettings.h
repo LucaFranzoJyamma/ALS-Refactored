@@ -1,9 +1,10 @@
 ﻿#pragma once
 
 #include "Engine/DataAsset.h"
-#include "Engine/EngineTypes.h"
+#include "Engine/NetSerialization.h"
 #include "AlsMantlingSettings.generated.h"
 
+enum EObjectTypeQuery;
 class UAnimMontage;
 class UCurveFloat;
 class UCurveVector;
@@ -30,7 +31,7 @@ struct ALS_API FAlsMantlingParameters
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS")
 	FRotator TargetRelativeRotation{ForceInit};
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS", Meta = (ForceUnits = "cm"))
 	float MantlingHeight{0.0f};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS")
@@ -67,17 +68,17 @@ public:
 	FVector2D PlayRate{1.0f, 1.0f};
 
 public:
-	float CalculateStartTime(float MantlingHeight) const;
+	float GetStartTimeForHeight(float MantlingHeight) const;
 
-	float CalculatePlayRate(float MantlingHeight) const;
+	float GetPlayRateForHeight(float MantlingHeight) const;
 };
 
-inline float UAlsMantlingSettings::CalculateStartTime(const float MantlingHeight) const
+inline float UAlsMantlingSettings::GetStartTimeForHeight(const float MantlingHeight) const
 {
 	return FMath::GetMappedRangeValueClamped(ReferenceHeight, StartTime, MantlingHeight);
 }
 
-inline float UAlsMantlingSettings::CalculatePlayRate(const float MantlingHeight) const
+inline float UAlsMantlingSettings::GetPlayRateForHeight(const float MantlingHeight) const
 {
 	return FMath::GetMappedRangeValueClamped(ReferenceHeight, PlayRate, MantlingHeight);
 }

@@ -7,13 +7,13 @@
 #include "Curves/CurveFloat.h"
 #include "GameFramework/GameNetworkManager.h"
 #include "Net/UnrealNetwork.h"
-#include "Net/Core/PushModel/PushModel.h"
 #include "Settings/AlsCharacterSettings.h"
 #include "Utility/AlsConstants.h"
 #include "Utility/AlsLog.h"
 #include "Utility/AlsMacros.h"
-#include "Utility/AlsMath.h"
 #include "Utility/AlsUtility.h"
+
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AlsCharacter)
 
 namespace AlsCharacterConstants
 {
@@ -121,7 +121,7 @@ void AAlsCharacter::PostInitializeComponents()
 
 	GetMesh()->AddTickPrerequisiteActor(this);
 
-	AlsCharacterMovement->OnPhysicsRotation.AddUObject(this, &ThisClass::PhysicsRotation);
+	AlsCharacterMovement->OnPhysicsRotation.AddUObject(this, &ThisClass::CharacterMovement_OnPhysicsRotation);
 
 	// Pass current movement settings to the movement component.
 
@@ -304,28 +304,28 @@ void AAlsCharacter::RefreshVisibilityBasedAnimTickOption() const
 	GetMesh()->VisibilityBasedAnimTickOption = TargetTickOption <= DefaultTickOption ? TargetTickOption : DefaultTickOption;
 }
 
-void AAlsCharacter::SetViewMode(const FGameplayTag& NewModeTag)
+void AAlsCharacter::SetViewMode(const FGameplayTag& NewViewMode)
 {
 	checkf(NewModeTag.IsValid() && NewModeTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.ViewMode",true)), TEXT("Invalid Tag on SetViewMode"));//JYAMMA MOD: implemented consistency check
 	if (ViewMode != NewModeTag)
 	{
-		ViewMode = NewModeTag;
+		ViewMode = NewViewMode;
 
 		MARK_PROPERTY_DIRTY_FROM_NAME(ThisClass, ViewMode, this)
 
 		if (GetLocalRole() == ROLE_AutonomousProxy)
 		{
-			ServerSetViewMode(NewModeTag);
+			ServerSetViewMode(NewViewMode);
 		}
 	}
 }
 
-void AAlsCharacter::ServerSetViewMode_Implementation(const FGameplayTag& NewModeTag)
+void AAlsCharacter::ServerSetViewMode_Implementation(const FGameplayTag& NewViewMode)
 {
-	SetViewMode(NewModeTag);
+	SetViewMode(NewViewMode);
 }
 
-void AAlsCharacter::OnMovementModeChanged(const EMovementMode PreviousMode, const uint8 PreviousCustomMode)
+void AAlsCharacter::OnMovementModeChanged(const EMovementMode PreviousMovementMode, const uint8 PreviousCustomMode)
 {
 	// Use the character movement mode to set the locomotion mode to the right value. This allows you to have a
 	// custom set of movement modes but still use the functionality of the default character movement component.
@@ -346,27 +346,27 @@ void AAlsCharacter::OnMovementModeChanged(const EMovementMode PreviousMode, cons
 			break;
 	}
 
-	Super::OnMovementModeChanged(PreviousMode, PreviousCustomMode);
+	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
 }
 
-void AAlsCharacter::SetLocomotionMode(const FGameplayTag& NewModeTag)
+void AAlsCharacter::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)
 {
-	if (LocomotionMode != NewModeTag)
+	if (LocomotionMode != NewLocomotionMode)
 	{
-		const auto PreviousMode{LocomotionMode};
+		const auto PreviousLocomotionMode{LocomotionMode};
 
-		LocomotionMode = NewModeTag;
+		LocomotionMode = NewLocomotionMode;
 
-		NotifyLocomotionModeChanged(PreviousMode);
+		NotifyLocomotionModeChanged(PreviousLocomotionMode);
 	}
 }
 
-void AAlsCharacter::NotifyLocomotionModeChanged(const FGameplayTag& PreviousModeTag)
+void AAlsCharacter::NotifyLocomotionModeChanged(const FGameplayTag& PreviousLocomotionMode)
 {
 	ApplyDesiredStance();
 
 	if (LocomotionMode == AlsLocomotionModeTags::Grounded &&
-	    PreviousModeTag == AlsLocomotionModeTags::InAir)
+	    PreviousLocomotionMode == AlsLocomotionModeTags::InAir)
 	{
 		if (Settings->Ragdolling.bStartRagdollingOnLand &&
 		    LocomotionState.Velocity.Z <= -Settings->Ragdolling.RagdollingOnLandSpeedThreshold)
@@ -414,10 +414,10 @@ void AAlsCharacter::NotifyLocomotionModeChanged(const FGameplayTag& PreviousMode
 		StartRagdolling();
 	}
 
-	OnLocomotionModeChanged(PreviousModeTag);
+	OnLocomotionModeChanged(PreviousLocomotionMode);
 }
 
-void AAlsCharacter::OnLocomotionModeChanged_Implementation(const FGameplayTag& PreviousModeTag) {}
+void AAlsCharacter::OnLocomotionModeChanged_Implementation(const FGameplayTag& PreviousLocomotionMode) {}
 
 void AAlsCharacter::SetDesiredAiming(const bool bNewDesiredAiming)
 {
@@ -448,42 +448,42 @@ void AAlsCharacter::ServerSetDesiredAiming_Implementation(const bool bNewAiming)
 	SetDesiredAiming(bNewAiming);
 }
 
-void AAlsCharacter::SetDesiredRotationMode(const FGameplayTag& NewModeTag)
+void AAlsCharacter::SetDesiredRotationMode(const FGameplayTag& NewDesiredRotationMode)
 {
 	checkf(NewModeTag.IsValid() && NewModeTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.RotationMode",true)), TEXT("Invalid Tag on SetDesiredRotationMode"));//JYAMMA MOD: implemented consistency check
 	if (DesiredRotationMode != NewModeTag)
 	{
-		DesiredRotationMode = NewModeTag;
+		DesiredRotationMode = NewDesiredRotationMode;
 
 		MARK_PROPERTY_DIRTY_FROM_NAME(ThisClass, DesiredRotationMode, this)
 
 		if (GetLocalRole() == ROLE_AutonomousProxy)
 		{
-			ServerSetDesiredRotationMode(NewModeTag);
+			ServerSetDesiredRotationMode(NewDesiredRotationMode);
 		}
 	}
 }
 
-void AAlsCharacter::ServerSetDesiredRotationMode_Implementation(const FGameplayTag& NewModeTag)
+void AAlsCharacter::ServerSetDesiredRotationMode_Implementation(const FGameplayTag& NewDesiredRotationMode)
 {
-	SetDesiredRotationMode(NewModeTag);
+	SetDesiredRotationMode(NewDesiredRotationMode);
 }
 
-void AAlsCharacter::SetRotationMode(const FGameplayTag& NewModeTag)
+void AAlsCharacter::SetRotationMode(const FGameplayTag& NewRotationMode)
 {
-	AlsCharacterMovement->SetRotationMode(NewModeTag);
+	AlsCharacterMovement->SetRotationMode(NewRotationMode);
 
-	if (RotationMode != NewModeTag)
+	if (RotationMode != NewRotationMode)
 	{
-		const auto PreviousMode{RotationMode};
+		const auto PreviousRotationMode{RotationMode};
 
-		RotationMode = NewModeTag;
+		RotationMode = NewRotationMode;
 
-		OnRotationModeChanged(PreviousMode);
+		OnRotationModeChanged(PreviousRotationMode);
 	}
 }
 
-void AAlsCharacter::OnRotationModeChanged_Implementation(const FGameplayTag& PreviousModeTag) {}
+void AAlsCharacter::OnRotationModeChanged_Implementation(const FGameplayTag& PreviousRotationMode) {}
 
 void AAlsCharacter::RefreshRotationMode()
 {
@@ -574,27 +574,27 @@ void AAlsCharacter::RefreshRotationMode()
 	}
 }
 
-void AAlsCharacter::SetDesiredStance(const FGameplayTag& NewStanceTag)
+void AAlsCharacter::SetDesiredStance(const FGameplayTag& NewDesiredStance)
 {
 	checkf(NewStanceTag.IsValid() && NewStanceTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.Stance",true)), TEXT("Invalid Tag on SetDesiredStance"));//JYAMMA MOD: implemented consistency check
 	if (DesiredStance != NewStanceTag)
 	{
-		DesiredStance = NewStanceTag;
+		DesiredStance = NewDesiredStance;
 
 		MARK_PROPERTY_DIRTY_FROM_NAME(ThisClass, DesiredStance, this)
 
 		if (GetLocalRole() == ROLE_AutonomousProxy)
 		{
-			ServerSetDesiredStance(NewStanceTag);
+			ServerSetDesiredStance(NewDesiredStance);
 		}
 
 		ApplyDesiredStance();
 	}
 }
 
-void AAlsCharacter::ServerSetDesiredStance_Implementation(const FGameplayTag& NewStanceTag)
+void AAlsCharacter::ServerSetDesiredStance_Implementation(const FGameplayTag& NewDesiredStance)
 {
-	SetDesiredStance(NewStanceTag);
+	SetDesiredStance(NewDesiredStance);
 }
 
 void AAlsCharacter::ApplyDesiredStance()
@@ -644,56 +644,56 @@ void AAlsCharacter::OnEndCrouch(const float HalfHeightAdjust, const float Scaled
 	SetStance(AlsStanceTags::Standing);
 }
 
-void AAlsCharacter::SetStance(const FGameplayTag& NewStanceTag)
+void AAlsCharacter::SetStance(const FGameplayTag& NewStance)
 {
-	AlsCharacterMovement->SetStance(NewStanceTag);
+	AlsCharacterMovement->SetStance(NewStance);
 
-	if (Stance != NewStanceTag)
+	if (Stance != NewStance)
 	{
 		const auto PreviousStance{Stance};
 
-		Stance = NewStanceTag;
+		Stance = NewStance;
 
 		OnStanceChanged(PreviousStance);
 	}
 }
 
-void AAlsCharacter::OnStanceChanged_Implementation(const FGameplayTag& PreviousStanceTag) {}
+void AAlsCharacter::OnStanceChanged_Implementation(const FGameplayTag& PreviousStance) {}
 
-void AAlsCharacter::SetDesiredGait(const FGameplayTag& NewGaitTag)
+void AAlsCharacter::SetDesiredGait(const FGameplayTag& NewDesiredGait)
 {
 	checkf(NewGaitTag.IsValid() && NewGaitTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.Gait",true)), TEXT("Invalid Tag on SetDesiredGait"));//JYAMMA MOD: implemented consistency check
 	if (DesiredGait != NewGaitTag)
 	{
-		DesiredGait = NewGaitTag;
+		DesiredGait = NewDesiredGait;
 
 		MARK_PROPERTY_DIRTY_FROM_NAME(ThisClass, DesiredGait, this)
 
 		if (GetLocalRole() == ROLE_AutonomousProxy)
 		{
-			ServerSetDesiredGait(NewGaitTag);
+			ServerSetDesiredGait(NewDesiredGait);
 		}
 	}
 }
 
-void AAlsCharacter::ServerSetDesiredGait_Implementation(const FGameplayTag& NewGaitTag)
+void AAlsCharacter::ServerSetDesiredGait_Implementation(const FGameplayTag& NewDesiredGait)
 {
-	SetDesiredGait(NewGaitTag);
+	SetDesiredGait(NewDesiredGait);
 }
 
-void AAlsCharacter::SetGait(const FGameplayTag& NewGaitTag)
+void AAlsCharacter::SetGait(const FGameplayTag& NewGait)
 {
-	if (Gait != NewGaitTag)
+	if (Gait != NewGait)
 	{
 		const auto PreviousGait{Gait};
 
-		Gait = NewGaitTag;
+		Gait = NewGait;
 
 		OnGaitChanged(PreviousGait);
 	}
 }
 
-void AAlsCharacter::OnGaitChanged_Implementation(const FGameplayTag& PreviousGaitTag) {}
+void AAlsCharacter::OnGaitChanged_Implementation(const FGameplayTag& PreviousGait) {}
 
 void AAlsCharacter::RefreshGait()
 {
@@ -730,9 +730,9 @@ FGameplayTag AAlsCharacter::CalculateMaxAllowedGait() const
 	return AlsGaitTags::Running;
 }
 
-FGameplayTag AAlsCharacter::CalculateActualGait(const FGameplayTag& MaxAllowedGaitTag) const
+FGameplayTag AAlsCharacter::CalculateActualGait(const FGameplayTag& MaxAllowedGait) const
 {
-	// Get the new gait. This is calculated by the actual movement of the character and so it can be
+	// Calculate the new gait. This is calculated by the actual movement of the character and so it can be
 	// different from the desired gait or max allowed gait. For instance, if the max allowed gait becomes
 	// walking, the new gait will still be running until the character decelerates to the walking speed.
 
@@ -741,7 +741,7 @@ FGameplayTag AAlsCharacter::CalculateActualGait(const FGameplayTag& MaxAllowedGa
 		return AlsGaitTags::Walking;
 	}
 
-	if (LocomotionState.Speed < AlsCharacterMovement->GetGaitSettings().RunSpeed + 10.0f || MaxAllowedGaitTag != AlsGaitTags::Sprinting)
+	if (LocomotionState.Speed < AlsCharacterMovement->GetGaitSettings().RunSpeed + 10.0f || MaxAllowedGait != AlsGaitTags::Sprinting)
 	{
 		return AlsGaitTags::Running;
 	}
@@ -779,59 +779,59 @@ bool AAlsCharacter::CanSprint() const
 	return false;
 }
 
-void AAlsCharacter::SetOverlayMode(const FGameplayTag& NewModeTag)
+void AAlsCharacter::SetOverlayMode(const FGameplayTag& NewOverlayMode)
 {
 	checkf(NewModeTag.IsValid() && NewModeTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.OverlayMode",true)), TEXT("Invalid Tag on SetOverlayMode"));//JYAMMA MOD: implemented consistency check
 
 	if (OverlayMode != NewModeTag)
 	{
-		const auto PreviousMode{OverlayMode};
+		const auto PreviousOverlayMode{OverlayMode};
 
-		OverlayMode = NewModeTag;
+		OverlayMode = NewOverlayMode;
 
 		MARK_PROPERTY_DIRTY_FROM_NAME(ThisClass, OverlayMode, this)
 
-		OnOverlayModeChanged(PreviousMode);
+		OnOverlayModeChanged(PreviousOverlayMode);
 
 		if (GetLocalRole() == ROLE_AutonomousProxy)
 		{
-			ServerSetOverlayMode(NewModeTag);
+			ServerSetOverlayMode(NewOverlayMode);
 		}
 	}
 }
 
-void AAlsCharacter::ServerSetOverlayMode_Implementation(const FGameplayTag& NewModeTag)
+void AAlsCharacter::ServerSetOverlayMode_Implementation(const FGameplayTag& NewOverlayMode)
 {
-	SetOverlayMode(NewModeTag);
+	SetOverlayMode(NewOverlayMode);
 }
 
-void AAlsCharacter::OnReplicated_OverlayMode(const FGameplayTag& PreviousModeTag)
+void AAlsCharacter::OnReplicated_OverlayMode(const FGameplayTag& PreviousOverlayMode)
 {
-	OnOverlayModeChanged(PreviousModeTag);
+	OnOverlayModeChanged(PreviousOverlayMode);
 }
 
-void AAlsCharacter::OnOverlayModeChanged_Implementation(const FGameplayTag& PreviousModeTag) {}
+void AAlsCharacter::OnOverlayModeChanged_Implementation(const FGameplayTag& PreviousOverlayMode) {}
 
-void AAlsCharacter::SetLocomotionAction(const FGameplayTag& NewActionTag)
+void AAlsCharacter::SetLocomotionAction(const FGameplayTag& NewLocomotionAction)
 {
-	if (LocomotionAction != NewActionTag)
+	if (LocomotionAction != NewLocomotionAction)
 	{
-		const auto PreviousAction{LocomotionAction};
+		const auto PreviousLocomotionAction{LocomotionAction};
 
-		LocomotionAction = NewActionTag;
+		LocomotionAction = NewLocomotionAction;
 
-		NotifyLocomotionActionChanged(PreviousAction);
+		NotifyLocomotionActionChanged(PreviousLocomotionAction);
 	}
 }
 
-void AAlsCharacter::NotifyLocomotionActionChanged(const FGameplayTag& PreviousActionTag)
+void AAlsCharacter::NotifyLocomotionActionChanged(const FGameplayTag& PreviousLocomotionAction)
 {
 	ApplyDesiredStance();
 
-	OnLocomotionActionChanged(PreviousActionTag);
+	OnLocomotionActionChanged(PreviousLocomotionAction);
 }
 
-void AAlsCharacter::OnLocomotionActionChanged_Implementation(const FGameplayTag& PreviousActionTag) {}
+void AAlsCharacter::OnLocomotionActionChanged_Implementation(const FGameplayTag& PreviousLocomotionAction) {}
 
 FRotator AAlsCharacter::GetViewRotation() const
 {
@@ -955,7 +955,7 @@ void AAlsCharacter::RefreshViewNetworkSmoothing(const float DeltaTime)
 
 	if (!NetworkSmoothing.bEnabled ||
 	    NetworkSmoothing.ClientTime >= NetworkSmoothing.ServerTime ||
-	    NetworkSmoothing.Duration <= SMALL_NUMBER)
+	    NetworkSmoothing.Duration <= UE_SMALL_NUMBER)
 	{
 		NetworkSmoothing.InitialRotation = RawViewRotation;
 		NetworkSmoothing.Rotation = RawViewRotation;
@@ -1039,7 +1039,7 @@ void AAlsCharacter::RefreshLocomotion(const float DeltaTime)
 
 	// If the character has the input, update the input yaw angle.
 
-	LocomotionState.bHasInput = InputDirection.SizeSquared() > KINDA_SMALL_NUMBER;
+	LocomotionState.bHasInput = InputDirection.SizeSquared() > UE_KINDA_SMALL_NUMBER;
 
 	if (LocomotionState.bHasInput)
 	{
@@ -1115,7 +1115,7 @@ void AAlsCharacter::FaceRotation(const FRotator NewRotation, const float DeltaTi
 	// Left empty intentionally.
 }
 
-void AAlsCharacter::PhysicsRotation(const float DeltaTime)
+void AAlsCharacter::CharacterMovement_OnPhysicsRotation(const float DeltaTime)
 {
 	RefreshRollingPhysics(DeltaTime);
 }
@@ -1140,7 +1140,7 @@ void AAlsCharacter::RefreshGroundedRotation(const float DeltaTime)
 
 		ApplyRotationYawSpeed(DeltaTime);
 
-		if (TryRefreshCustomGroundedNotMovingRotation(DeltaTime))
+		if (RefreshCustomGroundedNotMovingRotation(DeltaTime))
 		{
 			return;
 		}
@@ -1169,7 +1169,7 @@ void AAlsCharacter::RefreshGroundedRotation(const float DeltaTime)
 
 	// Moving.
 
-	if (TryRefreshCustomGroundedMovingRotation(DeltaTime))
+	if (RefreshCustomGroundedMovingRotation(DeltaTime))
 	{
 		return;
 	}
@@ -1192,7 +1192,7 @@ void AAlsCharacter::RefreshGroundedRotation(const float DeltaTime)
 			Gait == AlsGaitTags::Sprinting
 				? LocomotionState.VelocityYawAngle
 				: UE_REAL_TO_FLOAT(ViewState.Rotation.Yaw) +
-				  GetMesh()->GetAnimInstance()->GetCurveValue(UAlsConstants::RotationYawOffsetCurve())
+				  GetMesh()->GetAnimInstance()->GetCurveValue(UAlsConstants::RotationYawOffsetCurveName())
 		};
 
 		static constexpr auto TargetYawAngleRotationSpeed{500.0f};
@@ -1210,12 +1210,12 @@ void AAlsCharacter::RefreshGroundedRotation(const float DeltaTime)
 	RefreshTargetYawAngleUsingLocomotionRotation();
 }
 
-bool AAlsCharacter::TryRefreshCustomGroundedMovingRotation(const float DeltaTime)
+bool AAlsCharacter::RefreshCustomGroundedMovingRotation(const float DeltaTime)
 {
 	return false;
 }
 
-bool AAlsCharacter::TryRefreshCustomGroundedNotMovingRotation(const float DeltaTime)
+bool AAlsCharacter::RefreshCustomGroundedNotMovingRotation(const float DeltaTime)
 {
 	return false;
 }
@@ -1283,8 +1283,8 @@ float AAlsCharacter::CalculateRotationInterpolationSpeed() const
 
 void AAlsCharacter::ApplyRotationYawSpeed(const float DeltaTime)
 {
-	const auto DeltaYawAngle{GetMesh()->GetAnimInstance()->GetCurveValue(UAlsConstants::RotationYawSpeedCurve()) * DeltaTime};
-	if (FMath::Abs(DeltaYawAngle) > SMALL_NUMBER)
+	const auto DeltaYawAngle{GetMesh()->GetAnimInstance()->GetCurveValue(UAlsConstants::RotationYawSpeedCurveName()) * DeltaTime};
+	if (FMath::Abs(DeltaYawAngle) > UE_SMALL_NUMBER)
 	{
 		auto NewRotation{GetActorRotation()};
 		NewRotation.Yaw += DeltaYawAngle;
@@ -1304,7 +1304,7 @@ void AAlsCharacter::RefreshInAirRotation(const float DeltaTime)
 		return;
 	}
 
-	if (TryRefreshCustomInAirRotation(DeltaTime))
+	if (RefreshCustomInAirRotation(DeltaTime))
 	{
 		return;
 	}
@@ -1347,7 +1347,7 @@ void AAlsCharacter::RefreshInAirRotation(const float DeltaTime)
 	}
 }
 
-bool AAlsCharacter::TryRefreshCustomInAirRotation(const float DeltaTime)
+bool AAlsCharacter::RefreshCustomInAirRotation(const float DeltaTime)
 {
 	return false;
 }
@@ -1373,8 +1373,7 @@ void AAlsCharacter::RefreshRotation(const float TargetYawAngle, const float Delt
 }
 
 void AAlsCharacter::RefreshRotationExtraSmooth(const float TargetYawAngle, const float DeltaTime,
-                                               const float RotationInterpolationSpeed,
-                                               const float TargetYawAngleRotationSpeed)
+                                               const float RotationInterpolationSpeed, const float TargetYawAngleRotationSpeed)
 {
 	LocomotionState.TargetYawAngle = TargetYawAngle;
 
@@ -1430,7 +1429,7 @@ void AAlsCharacter::LockRotation(const float TargetYawAngle)
 {
 	if (LocomotionState.bRotationLocked)
 	{
-		UE_LOG(LogAls, Warning, TEXT("%s: Trying to lock a rotation when it is already locked!"), ANSI_TO_TCHAR(__FUNCTION__));
+		UE_LOG(LogAls, Warning, __FUNCTION__ TEXT(": Trying to lock a rotation when it is already locked!"));
 		return;
 	}
 
@@ -1441,7 +1440,7 @@ void AAlsCharacter::UnLockRotation()
 {
 	if (!LocomotionState.bRotationLocked)
 	{
-		UE_LOG(LogAls, Log, TEXT("%s: Trying to unlock a rotation when it is already unlocked!"), ANSI_TO_TCHAR(__FUNCTION__));
+		UE_LOG(LogAls, Log, __FUNCTION__ TEXT(": Trying to unlock a rotation when it is already unlocked!"));
 		return;
 	}
 

@@ -4,6 +4,8 @@
 #include "GameFramework/Character.h"
 #include "Utility/AlsLog.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AlsAnimNotifyState_SetRootMotionScale)
+
 UAlsAnimNotifyState_SetRootMotionScale::UAlsAnimNotifyState_SetRootMotionScale()
 {
 #if WITH_EDITORONLY_DATA
@@ -19,9 +21,9 @@ FString UAlsAnimNotifyState_SetRootMotionScale::GetNotifyName_Implementation() c
 }
 
 void UAlsAnimNotifyState_SetRootMotionScale::NotifyBegin(USkeletalMeshComponent* Mesh, UAnimSequenceBase* Animation,
-                                                         const float TotalDuration, const FAnimNotifyEventReference& EventReference)
+                                                         const float Duration, const FAnimNotifyEventReference& EventReference)
 {
-	Super::NotifyBegin(Mesh, Animation, TotalDuration, EventReference);
+	Super::NotifyBegin(Mesh, Animation, Duration, EventReference);
 
 	auto* Character{Cast<ACharacter>(Mesh->GetOwner())};
 
@@ -46,8 +48,8 @@ void UAlsAnimNotifyState_SetRootMotionScale::NotifyEnd(USkeletalMeshComponent* M
 		}
 		else
 		{
-			UE_LOG(LogAls, Warning, TEXT("%s: The current translation scale does not match the translation scale from the animation notify!"
-				       " Probably something changed it before the animation notify ended."), ANSI_TO_TCHAR(__FUNCTION__));
+			UE_LOG(LogAls, Warning, __FUNCTION__ TEXT(": The current translation scale does not match the translation scale"
+				       " from the animation notify! Probably something changed it before the animation notify ended."));
 		}
 	}
 }

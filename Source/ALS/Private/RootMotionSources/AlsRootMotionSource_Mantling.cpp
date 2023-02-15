@@ -8,6 +8,9 @@
 #include "Settings/AlsMantlingSettings.h"
 #include "Utility/AlsMacros.h"
 
+// ReSharper disable once CppUnusedIncludeDirective
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AlsRootMotionSource_Mantling)
+
 FAlsRootMotionSource_Mantling::FAlsRootMotionSource_Mantling()
 {
 	Priority = 1000;
@@ -36,13 +39,13 @@ void FAlsRootMotionSource_Mantling::PrepareRootMotion(const float SimulationDelt
 {
 	SetTime(GetTime() + SimulationDeltaTime);
 
-	if (!ALS_ENSURE(Duration > SMALL_NUMBER) || DeltaTime <= SMALL_NUMBER)
+	if (!ALS_ENSURE(Duration > UE_SMALL_NUMBER) || DeltaTime <= UE_SMALL_NUMBER)
 	{
 		RootMotionParams.Clear();
 		return;
 	}
 
-	const auto MantlingTime{GetTime() * MantlingSettings->CalculatePlayRate(MantlingHeight)};
+	const auto MantlingTime{GetTime() * MantlingSettings->GetPlayRateForHeight(MantlingHeight)};
 
 	// Calculate target transform from the stored relative transform to follow along with moving objects.
 
@@ -67,7 +70,7 @@ void FAlsRootMotionSource_Mantling::PrepareRootMotion(const float SimulationDelt
 	{
 		const FVector3f InterpolationAndCorrectionAmounts{
 			MantlingSettings->InterpolationAndCorrectionAmountsCurve->GetVectorValue(
-				MantlingTime + MantlingSettings->CalculateStartTime(MantlingHeight))
+				MantlingTime + MantlingSettings->GetStartTimeForHeight(MantlingHeight))
 		};
 
 		const auto InterpolationAmount{InterpolationAndCorrectionAmounts.X};

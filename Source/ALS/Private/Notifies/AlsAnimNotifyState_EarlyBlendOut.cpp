@@ -3,6 +3,8 @@
 #include "AlsCharacter.h"
 #include "Animation/AnimInstance.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AlsAnimNotifyState_EarlyBlendOut)
+
 UAlsAnimNotifyState_EarlyBlendOut::UAlsAnimNotifyState_EarlyBlendOut()
 {
 #if WITH_EDITORONLY_DATA
@@ -34,6 +36,6 @@ void UAlsAnimNotifyState_EarlyBlendOut::NotifyTick(USkeletalMeshComponent* Mesh,
 	     (bCheckStance && Character->GetStance() == StanceEquals)))
 	// ReSharper restore CppRedundantParentheses
 	{
-		AnimationInstance->Montage_Stop(BlendOutTime, Montage);
+		AnimationInstance->Montage_Stop(BlendOutDuration, Montage);
 	}
 }

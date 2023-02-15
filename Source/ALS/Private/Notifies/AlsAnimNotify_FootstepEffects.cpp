@@ -1,8 +1,6 @@
 #include "Notifies/AlsAnimNotify_FootstepEffects.h"
 
 #include "AlsCharacter.h"
-#include "DrawDebugHelpers.h"
-#include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Animation/AnimInstance.h"
 #include "Components/AudioComponent.h"
@@ -14,6 +12,9 @@
 #include "Utility/AlsMacros.h"
 #include "Utility/AlsMath.h"
 #include "Utility/AlsUtility.h"
+
+// ReSharper disable once CppUnusedIncludeDirective
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AlsAnimNotify_FootstepEffects)
 
 FString UAlsAnimNotify_FootstepEffects::GetNotifyName_Implementation() const
 {
@@ -42,7 +43,7 @@ void UAlsAnimNotify_FootstepEffects::Notify(USkeletalMeshComponent* Mesh, UAnimS
 	const auto* World{Mesh->GetWorld()};
 	const auto* AnimationInstance{Mesh->GetAnimInstance()};
 
-	const auto FootBoneName{FootBone == EAlsFootBone::Left ? UAlsConstants::FootLeftBone() : UAlsConstants::FootRightBone()};
+	const auto FootBoneName{FootBone == EAlsFootBone::Left ? UAlsConstants::FootLeftBoneName() : UAlsConstants::FootRightBoneName()};
 	const auto FootTransform{Mesh->GetSocketTransform(FootBoneName)};
 
 	const auto FootZAxis{
@@ -52,10 +53,10 @@ void UAlsAnimNotify_FootstepEffects::Notify(USkeletalMeshComponent* Mesh, UAnimS
 	};
 
 #if ENABLE_DRAW_DEBUG
-	const auto bDisplayDebug{UAlsUtility::ShouldDisplayDebug(Mesh->GetOwner(), UAlsConstants::TracesDisplayName())};
+	const auto bDisplayDebug{UAlsUtility::ShouldDisplayDebugForActor(Mesh->GetOwner(), UAlsConstants::TracesDisplayName())};
 #endif
 
-	FCollisionQueryParams QueryParameters{ANSI_TO_TCHAR(__FUNCTION__), true, Mesh->GetOwner()};
+	FCollisionQueryParams QueryParameters{__FUNCTION__, true, Mesh->GetOwner()};
 	QueryParameters.bReturnPhysicalMaterial = true;
 
 	FHitResult Hit;
@@ -119,7 +120,7 @@ void UAlsAnimNotify_FootstepEffects::Notify(USkeletalMeshComponent* Mesh, UAnimS
 
 		if (!bIgnoreFootstepSoundBlockCurve && IsValid(AnimationInstance))
 		{
-			VolumeMultiplier *= 1.0f - UAlsMath::Clamp01(AnimationInstance->GetCurveValue(UAlsConstants::FootstepSoundBlockCurve()));
+			VolumeMultiplier *= 1.0f - UAlsMath::Clamp01(AnimationInstance->GetCurveValue(UAlsConstants::FootstepSoundBlockCurveName()));
 		}
 
 		if (FAnimWeight::IsRelevant(VolumeMultiplier) && IsValid(EffectSettings->Sound.LoadSynchronous()))

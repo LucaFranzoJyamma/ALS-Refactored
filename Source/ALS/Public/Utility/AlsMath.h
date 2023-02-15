@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "State/AlsMovementDirection.h"
 #include "AlsMath.generated.h"
 
 USTRUCT(BlueprintType)
@@ -65,13 +64,13 @@ public:
 	static float Clamp01(float Value);
 
 	UFUNCTION(BlueprintPure, Category = "ALS|Als Math")
-	static float LerpClamped(float A, float B, float Alpha);
+	static float LerpClamped(float From, float To, float Alpha);
 
 	UFUNCTION(BlueprintPure, Category = "ALS|Als Math")
-	static float LerpAngle(float A, float B, float Alpha);
+	static float LerpAngle(float From, float To, float Alpha);
 
-	UFUNCTION(BlueprintPure, Category = "ALS|Als Math", Meta = (AutoCreateRefTerm = "A, B"))
-	static FRotator LerpRotator(const FRotator& A, const FRotator& B, float Alpha);
+	UFUNCTION(BlueprintPure, Category = "ALS|Als Math", Meta = (AutoCreateRefTerm = "From, To"))
+	static FRotator LerpRotator(const FRotator& From, const FRotator& To, float Alpha);
 
 	UFUNCTION(BlueprintPure, Category = "ALS|Als Math")
 	static float Damp(float DeltaTime, float Smoothing);
@@ -79,10 +78,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "ALS|Als Math")
 	static float ExponentialDecay(float DeltaTime, float Lambda);
 
-	template <class ValueType>
+	template <typename ValueType>
 	static ValueType Damp(const ValueType& Current, const ValueType& Target, float DeltaTime, float Smoothing);
 
-	template <class ValueType>
+	template <typename ValueType>
 	static ValueType ExponentialDecay(const ValueType& Current, const ValueType& Target, float DeltaTime, float Lambda);
 
 	UFUNCTION(BlueprintPure, Category = "ALS|Als Math")
@@ -100,7 +99,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "ALS|Als Math")
 	static float InterpolateAngleConstant(float Current, float Target, float DeltaTime, float InterpolationSpeed);
 
-	template <class ValueType, class StateType>
+	template <typename ValueType, typename StateType>
 	static ValueType SpringDamp(const ValueType& Current, const ValueType& Target, StateType& SpringState,
 	                            float DeltaTime, float Frequency, float DampingRatio, float TargetVelocityAmount = 1.0f);
 
@@ -165,26 +164,26 @@ inline float UAlsMath::Clamp01(const float Value)
 		       : Value;
 }
 
-inline float UAlsMath::LerpClamped(const float A, const float B, const float Alpha)
+inline float UAlsMath::LerpClamped(const float From, const float To, const float Alpha)
 {
-	return A + (B - A) * Clamp01(Alpha);
+	return From + (To - From) * Clamp01(Alpha);
 }
 
-inline float UAlsMath::LerpAngle(const float A, const float B, const float Alpha)
+inline float UAlsMath::LerpAngle(const float From, const float To, const float Alpha)
 {
-	auto Delta{FRotator3f::NormalizeAxis(B - A)};
+	auto Delta{FRotator3f::NormalizeAxis(To - From)};
 
 	if (Delta > 180.0f - CounterClockwiseRotationAngleThreshold)
 	{
 		Delta -= 360.0f;
 	}
 
-	return FRotator3f::NormalizeAxis(A + Delta * Alpha);
+	return FRotator3f::NormalizeAxis(From + Delta * Alpha);
 }
 
-inline FRotator UAlsMath::LerpRotator(const FRotator& A, const FRotator& B, const float Alpha)
+inline FRotator UAlsMath::LerpRotator(const FRotator& From, const FRotator& To, const float Alpha)
 {
-	auto Result{B - A};
+	auto Result{To - From};
 	Result.Normalize();
 
 	if (Result.Pitch > 180.0f - CounterClockwiseRotationAngleThreshold)
@@ -203,7 +202,7 @@ inline FRotator UAlsMath::LerpRotator(const FRotator& A, const FRotator& B, cons
 	}
 
 	Result *= Alpha;
-	Result += A;
+	Result += From;
 	Result.Normalize();
 
 	return Result;
@@ -223,7 +222,7 @@ inline float UAlsMath::ExponentialDecay(const float DeltaTime, const float Lambd
 	return 1.0f - FMath::InvExpApprox(Lambda * DeltaTime);
 }
 
-template <class ValueType>
+template <typename ValueType>
 ValueType UAlsMath::Damp(const ValueType& Current, const ValueType& Target, const float DeltaTime, const float Smoothing)
 {
 	return Smoothing > 0.0f
@@ -231,7 +230,7 @@ ValueType UAlsMath::Damp(const ValueType& Current, const ValueType& Target, cons
 		       : Target;
 }
 
-template <class ValueType>
+template <typename ValueType>
 ValueType UAlsMath::ExponentialDecay(const ValueType& Current, const ValueType& Target, const float DeltaTime, const float Lambda)
 {
 	return Lambda > 0.0f
