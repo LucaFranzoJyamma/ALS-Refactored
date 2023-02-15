@@ -306,8 +306,8 @@ void AAlsCharacter::RefreshVisibilityBasedAnimTickOption() const
 
 void AAlsCharacter::SetViewMode(const FGameplayTag& NewViewMode)
 {
-	checkf(NewModeTag.IsValid() && NewModeTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.ViewMode",true)), TEXT("Invalid Tag on SetViewMode"));//JYAMMA MOD: implemented consistency check
-	if (ViewMode != NewModeTag)
+	checkf(NewViewMode.IsValid() && NewViewMode.MatchesTag(FGameplayTag::RequestGameplayTag("Als.ViewMode",true)), TEXT("Invalid Tag on SetViewMode"));//JYAMMA MOD: implemented consistency check
+	if (ViewMode != NewViewMode)
 	{
 		ViewMode = NewViewMode;
 
@@ -450,8 +450,8 @@ void AAlsCharacter::ServerSetDesiredAiming_Implementation(const bool bNewAiming)
 
 void AAlsCharacter::SetDesiredRotationMode(const FGameplayTag& NewDesiredRotationMode)
 {
-	checkf(NewModeTag.IsValid() && NewModeTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.RotationMode",true)), TEXT("Invalid Tag on SetDesiredRotationMode"));//JYAMMA MOD: implemented consistency check
-	if (DesiredRotationMode != NewModeTag)
+	checkf(NewDesiredRotationMode.IsValid() && NewDesiredRotationMode.MatchesTag(FGameplayTag::RequestGameplayTag("Als.RotationMode",true)), TEXT("Invalid Tag on SetDesiredRotationMode"));//JYAMMA MOD: implemented consistency check
+	if (DesiredRotationMode != NewDesiredRotationMode)
 	{
 		DesiredRotationMode = NewDesiredRotationMode;
 
@@ -576,8 +576,8 @@ void AAlsCharacter::RefreshRotationMode()
 
 void AAlsCharacter::SetDesiredStance(const FGameplayTag& NewDesiredStance)
 {
-	checkf(NewStanceTag.IsValid() && NewStanceTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.Stance",true)), TEXT("Invalid Tag on SetDesiredStance"));//JYAMMA MOD: implemented consistency check
-	if (DesiredStance != NewStanceTag)
+	checkf(NewDesiredStance.IsValid() && NewDesiredStance.MatchesTag(FGameplayTag::RequestGameplayTag("Als.Stance",true)), TEXT("Invalid Tag on SetDesiredStance"));//JYAMMA MOD: implemented consistency check
+	if (DesiredStance != NewDesiredStance)
 	{
 		DesiredStance = NewDesiredStance;
 
@@ -662,8 +662,8 @@ void AAlsCharacter::OnStanceChanged_Implementation(const FGameplayTag& PreviousS
 
 void AAlsCharacter::SetDesiredGait(const FGameplayTag& NewDesiredGait)
 {
-	checkf(NewGaitTag.IsValid() && NewGaitTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.Gait",true)), TEXT("Invalid Tag on SetDesiredGait"));//JYAMMA MOD: implemented consistency check
-	if (DesiredGait != NewGaitTag)
+	checkf(NewDesiredGait.IsValid() && NewDesiredGait.MatchesTag(FGameplayTag::RequestGameplayTag("Als.Gait",true)), TEXT("Invalid Tag on SetDesiredGait"));//JYAMMA MOD: implemented consistency check
+	if (DesiredGait != NewDesiredGait)
 	{
 		DesiredGait = NewDesiredGait;
 
@@ -781,9 +781,9 @@ bool AAlsCharacter::CanSprint() const
 
 void AAlsCharacter::SetOverlayMode(const FGameplayTag& NewOverlayMode)
 {
-	checkf(NewModeTag.IsValid() && NewModeTag.MatchesTag(FGameplayTag::RequestGameplayTag("Als.OverlayMode",true)), TEXT("Invalid Tag on SetOverlayMode"));//JYAMMA MOD: implemented consistency check
+	checkf(NewOverlayMode.IsValid() && NewOverlayMode.MatchesTag(FGameplayTag::RequestGameplayTag("Als.OverlayMode",true)), TEXT("Invalid Tag on SetOverlayMode"));//JYAMMA MOD: implemented consistency check
 
-	if (OverlayMode != NewModeTag)
+	if (OverlayMode != NewOverlayMode)
 	{
 		const auto PreviousOverlayMode{OverlayMode};
 
