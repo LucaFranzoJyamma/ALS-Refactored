@@ -39,31 +39,42 @@ FAlsRigUnit_ExponentialDecayVector_Execute()
 {
 	DECLARE_SCOPE_HIERARCHICAL_COUNTER_RIGUNIT()
 
-	Current = Context.State == EControlRigState::Init
-		          ? Target
-		          : UAlsMath::ExponentialDecay(Current, Target, Context.DeltaTime, Lambda);
+	// JYAMMA MOD: Original code
+	//Current = Context.State == EControlRigState::Init
+	//	          ? Target
+	//	          : UAlsMath::ExponentialDecay(Current, Target, Context.DeltaTime, Lambda);
+	// JYAMMA MOD: BEGIN
+	Current = UAlsMath::ExponentialDecay(Current, Target, ExecuteContext.GetDeltaTime(), Lambda);
+	// JYAMMA MOD: END
 }
 
 FAlsRigUnit_CalculatePoleVector_Execute()
 {
 	DECLARE_SCOPE_HIERARCHICAL_COUNTER_RIGUNIT()
 
-	const auto* Hierarchy{Context.Hierarchy};
+	const auto* Hierarchy{ ExecuteContext.Hierarchy};
 	if (!IsValid(Hierarchy))
 	{
 		return;
 	}
 
-	if (Context.State == EControlRigState::Init)
-	{
-		CachedItemA.Reset();
-		CachedItemB.Reset();
-		CachedItemC.Reset();
-	}
-	else if (bInitial)
+	// JYAMMA MOD: Original code
+	//if (ExecuteContext.State == EControlRigState::Init)
+	//{
+	//	CachedItemA.Reset();
+	//	CachedItemB.Reset();
+	//	CachedItemC.Reset();
+	//}
+	//else if (bInitial)
+	//{
+	//	return;
+	//}
+	// JYAMMA MOD: BEGIN
+	if (bInitial)
 	{
 		return;
 	}
+	// JYAMMA MOD: END
 
 	if (!CachedItemA.UpdateCache(ItemA, Hierarchy) ||
 	    !CachedItemB.UpdateCache(ItemB, Hierarchy) ||
@@ -108,15 +119,18 @@ FAlsRigUnit_HandIkRetargeting_Execute()
 		return;
 	}
 
-	if (Context.State == EControlRigState::Init)
-	{
-		CachedLeftHandBone.Reset();
-		CachedLeftHandIkBone.Reset();
-		CachedRightHandBone.Reset();
-		CachedRightHandIkBone.Reset();
-		CachedBonesToMove.Reset();
-		return;
-	}
+	// JYAMMA MOD: Original code
+	//if (ExecuteContext.State == EControlRigState::Init)
+	//{
+	//	CachedLeftHandBone.Reset();
+	//	CachedLeftHandIkBone.Reset();
+	//	CachedRightHandBone.Reset();
+	//	CachedRightHandIkBone.Reset();
+	//	CachedBonesToMove.Reset();
+	//	return;
+	//}
+	// JYAMMA MOD: BEGIN
+	// JYAMMA MOD: END
 
 	if (!CachedLeftHandBone.UpdateCache(LeftHandBone, Hierarchy) ||
 	    !CachedLeftHandIkBone.UpdateCache(LeftHandIkBone, Hierarchy) ||
@@ -168,10 +182,13 @@ FAlsRigUnit_HandIkRetargeting_Execute()
 
 	for (auto i{0}; i < BonesToMove.Num(); i++)
 	{
-		if (Context.State == EControlRigState::Init)
-		{
-			CachedBonesToMove[i].Reset();
-		}
+		// JYAMMA MOD: Original code
+		//if (ExecuteContext.State == EControlRigState::Init)
+		//{
+		//	CachedBonesToMove[i].Reset();
+		//}
+		// JYAMMA MOD: BEGIN
+		// JYAMMA MOD: END
 
 		if (!CachedBonesToMove[i].UpdateCache(BonesToMove[i], Hierarchy))
 		{

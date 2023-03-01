@@ -5,7 +5,7 @@ public class ALS : ModuleRules
 	public ALS(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_1;
+		IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
 
 		PrivateDependencyModuleNames.AddRange(new[]
 		{

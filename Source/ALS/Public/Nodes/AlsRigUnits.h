@@ -63,7 +63,7 @@ public:
 
 public:
 	RIGVM_METHOD()
-	virtual void Execute(const FRigUnitContext& Context) override;
+	virtual void Execute() override;
 };
 
 USTRUCT(DisplayName = "Exponential Decay (Vector)", Meta = (Category = "ALS"))
@@ -83,7 +83,7 @@ public:
 
 public:
 	RIGVM_METHOD()
-	virtual void Execute(const FRigUnitContext& Context) override;
+	virtual void Execute() override;
 };
 
 USTRUCT(DisplayName = "Hand Ik Retargeting", Meta = (Category = "ALS"))
@@ -134,5 +134,5 @@ public:
 
 public:
 	RIGVM_METHOD()
-	virtual void Execute(const FRigUnitContext& Context) override;
+	virtual void Execute() override;
 };
