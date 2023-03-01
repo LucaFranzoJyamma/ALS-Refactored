@@ -2,6 +2,7 @@
 
 
 #include "Settings/AlsCharacterSettings_Minimal.h"
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AlsCharacterSettings_Minimal)
 
 #if WITH_EDITOR
 bool UAlsCharacterSettings_Minimal::CanEditChange(const FProperty* InProperty) const
