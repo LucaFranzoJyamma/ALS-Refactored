@@ -7,6 +7,8 @@ public class ALSCamera : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
 
+		bEnableNonInlinedGenCppWarnings = true;
+
 		PrivateDependencyModuleNames.AddRange(new[]
 		{
 			"Core", "CoreUObject", "Engine", "GameplayTags", "ALS"

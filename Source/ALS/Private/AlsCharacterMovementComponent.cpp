@@ -140,7 +140,7 @@ UAlsCharacterMovementComponent::UAlsCharacterMovementComponent(const FObjectInit
 	FallingLateralFriction = 1.0f;
 	JumpOffJumpZFactor = 0.0f;
 
-	bNetworkAlwaysReplicateTransformUpdateTimestamp = true; // Required for view interpolation.
+	bNetworkAlwaysReplicateTransformUpdateTimestamp = true; // Required for view network smoothing.
 
 	RotationRate = FRotator::ZeroRotator;
 	bUseControllerDesiredRotation = false;
