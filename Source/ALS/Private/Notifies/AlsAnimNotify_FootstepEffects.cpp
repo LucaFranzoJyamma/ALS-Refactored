@@ -18,7 +18,11 @@
 
 FString UAlsAnimNotify_FootstepEffects::GetNotifyName_Implementation() const
 {
-	return FString::Format(TEXT("Als Footstep Effects: {0}"), {AlsEnumUtility::GetNameStringByValue(FootBone)});
+	TStringBuilder<64> NotifyNameBuilder;
+
+	NotifyNameBuilder << TEXTVIEW("Als Footstep Effects: ") << AlsEnumUtility::GetNameStringByValue(FootBone);
+
+	return FString{NotifyNameBuilder};
 }
 
 void UAlsAnimNotify_FootstepEffects::Notify(USkeletalMeshComponent* Mesh, UAnimSequenceBase* Animation,
@@ -152,7 +156,7 @@ void UAlsAnimNotify_FootstepEffects::Notify(USkeletalMeshComponent* Mesh, UAnimS
 
 			if (IsValid(Audio))
 			{
-				Audio->SetIntParameter(TEXT("FootstepType"), static_cast<int32>(SoundType));
+				Audio->SetIntParameter(FName{TEXTVIEW("FootstepType")}, static_cast<int32>(SoundType));
 			}
 		}
 	}
@@ -200,7 +204,7 @@ void UAlsAnimNotify_FootstepEffects::Notify(USkeletalMeshComponent* Mesh, UAnimS
 				const auto ParticleSystemRotation{
 					FootstepRotation * (FootBone == EAlsFootBone::Left
 						                    ? EffectSettings->ParticleSystemFootLeftRotationOffset
-						                    : EffectSettings->ParticleSystemFootLeftRotationOffset).Quaternion()
+						                    : EffectSettings->ParticleSystemFootRightRotationOffset).Quaternion()
 				};
 
 				const auto ParticleSystemLocation{
@@ -217,7 +221,9 @@ void UAlsAnimNotify_FootstepEffects::Notify(USkeletalMeshComponent* Mesh, UAnimS
 			case EAlsFootstepParticleEffectSpawnMode::SpawnAttachedToFootBone:
 				UNiagaraFunctionLibrary::SpawnSystemAttached(EffectSettings->ParticleSystem.Get(), Mesh, FootBoneName,
 				                                             FVector{EffectSettings->ParticleSystemLocationOffset} * MeshScale,
-				                                             EffectSettings->ParticleSystemFootLeftRotationOffset,
+				                                             FootBone == EAlsFootBone::Left
+					                                             ? EffectSettings->ParticleSystemFootLeftRotationOffset
+					                                             : EffectSettings->ParticleSystemFootRightRotationOffset,
 				                                             FVector::OneVector * MeshScale, EAttachLocation::KeepRelativeOffset,
 				                                             true, ENCPoolMethod::AutoRelease);
 				break;

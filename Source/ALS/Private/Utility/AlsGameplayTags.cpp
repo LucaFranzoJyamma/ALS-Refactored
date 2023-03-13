@@ -2,34 +2,34 @@
 
 namespace AlsViewModeTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(FirstPerson, TEXT("Als.ViewMode.FirstPerson"))
-	UE_DEFINE_GAMEPLAY_TAG(ThirdPerson, TEXT("Als.ViewMode.ThirdPerson"))
+	UE_DEFINE_GAMEPLAY_TAG(FirstPerson, FName{TEXTVIEW("Als.ViewMode.FirstPerson")})
+	UE_DEFINE_GAMEPLAY_TAG(ThirdPerson, FName{TEXTVIEW("Als.ViewMode.ThirdPerson")})
 }
 
 namespace AlsLocomotionModeTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(Grounded, TEXT("Als.LocomotionMode.Grounded"))
-	UE_DEFINE_GAMEPLAY_TAG(InAir, TEXT("Als.LocomotionMode.InAir"))
+	UE_DEFINE_GAMEPLAY_TAG(Grounded, FName{TEXTVIEW("Als.LocomotionMode.Grounded")})
+	UE_DEFINE_GAMEPLAY_TAG(InAir, FName{TEXTVIEW("Als.LocomotionMode.InAir")})
 }
 
 namespace AlsRotationModeTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(VelocityDirection, TEXT("Als.RotationMode.VelocityDirection"))
-	UE_DEFINE_GAMEPLAY_TAG(LookingDirection, TEXT("Als.RotationMode.LookingDirection"))
-	UE_DEFINE_GAMEPLAY_TAG(Aiming, TEXT("Als.RotationMode.Aiming"))
+	UE_DEFINE_GAMEPLAY_TAG(VelocityDirection, FName{TEXTVIEW("Als.RotationMode.VelocityDirection")})
+	UE_DEFINE_GAMEPLAY_TAG(LookingDirection, FName{TEXTVIEW("Als.RotationMode.LookingDirection")})
+	UE_DEFINE_GAMEPLAY_TAG(Aiming, FName{TEXTVIEW("Als.RotationMode.Aiming")})
 }
 
 namespace AlsStanceTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(Standing, TEXT("Als.Stance.Standing"))
-	UE_DEFINE_GAMEPLAY_TAG(Crouching, TEXT("Als.Stance.Crouching"))
+	UE_DEFINE_GAMEPLAY_TAG(Standing, FName{TEXTVIEW("Als.Stance.Standing")})
+	UE_DEFINE_GAMEPLAY_TAG(Crouching, FName{TEXTVIEW("Als.Stance.Crouching")})
 }
 
 namespace AlsGaitTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(Walking, TEXT("Als.Gait.Walking"))
-	UE_DEFINE_GAMEPLAY_TAG(Running, TEXT("Als.Gait.Running"))
-	UE_DEFINE_GAMEPLAY_TAG(Sprinting, TEXT("Als.Gait.Sprinting"))
+	UE_DEFINE_GAMEPLAY_TAG(Walking, FName{TEXTVIEW("Als.Gait.Walking")})
+	UE_DEFINE_GAMEPLAY_TAG(Running, FName{TEXTVIEW("Als.Gait.Running")})
+	UE_DEFINE_GAMEPLAY_TAG(Sprinting, FName{TEXTVIEW("Als.Gait.Sprinting")})
 }
 
 namespace AlsOverlayModeTags
@@ -51,13 +51,13 @@ namespace AlsOverlayModeTags
 
 namespace AlsLocomotionActionTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(Mantling, TEXT("Als.LocomotionAction.Mantling"))
-	UE_DEFINE_GAMEPLAY_TAG(Ragdolling, TEXT("Als.LocomotionAction.Ragdolling"))
-	UE_DEFINE_GAMEPLAY_TAG(GettingUp, TEXT("Als.LocomotionAction.GettingUp"))
-	UE_DEFINE_GAMEPLAY_TAG(Rolling, TEXT("Als.LocomotionAction.Rolling"))
+	UE_DEFINE_GAMEPLAY_TAG(Mantling, FName{TEXTVIEW("Als.LocomotionAction.Mantling")})
+	UE_DEFINE_GAMEPLAY_TAG(Ragdolling, FName{TEXTVIEW("Als.LocomotionAction.Ragdolling")})
+	UE_DEFINE_GAMEPLAY_TAG(GettingUp, FName{TEXTVIEW("Als.LocomotionAction.GettingUp")})
+	UE_DEFINE_GAMEPLAY_TAG(Rolling, FName{TEXTVIEW("Als.LocomotionAction.Rolling")})
 }
 
 namespace AlsGroundedEntryModeTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(FromRoll, TEXT("Als.GroundedEntryMode.FromRoll"))
+	UE_DEFINE_GAMEPLAY_TAG(FromRoll, FName{TEXTVIEW("Als.GroundedEntryMode.FromRoll")})
 }
