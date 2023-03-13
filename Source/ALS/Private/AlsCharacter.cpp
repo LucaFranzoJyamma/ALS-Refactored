@@ -1558,6 +1558,12 @@ void AAlsCharacter::RefreshViewRelativeTargetYawAngle()
 		FRotator3f::NormalizeAxis(UE_REAL_TO_FLOAT(ViewState.Rotation.Yaw) - LocomotionState.TargetYawAngle);
 }
 
+void AAlsCharacter::RefreshCurrentRotationInstant()
+{
+	RefreshLocomotionLocationAndRotation();
+	RefreshTargetYawAngleUsingLocomotionRotation();
+}
+
 void AAlsCharacter::LockRotation(const float TargetYawAngle)
 {
 	if (LocomotionState.bRotationLocked)

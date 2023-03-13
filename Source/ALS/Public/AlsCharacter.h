@@ -399,13 +399,18 @@ protected:
 	                                float RotationInterpolationSpeed, float TargetYawAngleRotationSpeed);
 
 	void RefreshRotationInstant(float TargetYawAngle, ETeleportType Teleport = ETeleportType::None);
-
+	
 	void RefreshTargetYawAngleUsingLocomotionRotation();
 
 	void RefreshTargetYawAngle(float TargetYawAngle);
 
 	void RefreshViewRelativeTargetYawAngle();
 
+	//@JYAMMA MOD: Refresh current Rotation Instant - Begin
+public:
+	void RefreshCurrentRotationInstant(); 
+	//@JYAMMA MOD: Refresh current Rotation Instant - End
+	
 	// Rotation Lock
 
 public:
