@@ -2,10 +2,9 @@
 
 #include "Engine/DataAsset.h"
 #include "Engine/Scene.h"
+#include "Engine/EngineTypes.h"
 #include "Utility/AlsConstants.h"
 #include "AlsCameraSettings.generated.h"
-
-enum ETraceTypeQuery;
 
 USTRUCT(BlueprintType)
 struct ALSCAMERA_API FAlsFirstPersonCameraSettings

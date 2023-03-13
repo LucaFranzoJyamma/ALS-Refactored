@@ -1,8 +1,8 @@
 ﻿#pragma once
 
+#include "Engine/EngineTypes.h"
 #include "AlsRagdollingSettings.generated.h"
 
-enum EObjectTypeQuery;
 class UAnimMontage;
 
 USTRUCT(BlueprintType)

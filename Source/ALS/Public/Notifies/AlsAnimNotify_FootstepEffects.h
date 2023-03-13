@@ -2,10 +2,10 @@
 
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "Engine/DataAsset.h"
+#include "Engine/EngineTypes.h"
+#include "Chaos/ChaosEngineInterface.h"
 #include "AlsAnimNotify_FootstepEffects.generated.h"
 
-enum ETraceTypeQuery;
-enum EPhysicalSurface;
 class USoundBase;
 class UMaterialInterface;
 class UNiagaraSystem;

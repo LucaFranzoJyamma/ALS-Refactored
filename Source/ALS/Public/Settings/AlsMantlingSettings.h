@@ -2,9 +2,9 @@
 
 #include "Engine/DataAsset.h"
 #include "Engine/NetSerialization.h"
+#include "Engine/EngineTypes.h"
 #include "AlsMantlingSettings.generated.h"
 
-enum EObjectTypeQuery;
 class UAnimMontage;
 class UCurveFloat;
 class UCurveVector;

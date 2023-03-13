@@ -1425,7 +1425,7 @@ void AAlsCharacter::LockRotation(const float TargetYawAngle)
 {
 	if (LocomotionState.bRotationLocked)
 	{
-		UE_LOG(LogAls, Warning, __FUNCTION__ TEXT(": Trying to lock a rotation when it is already locked!"));
+		UE_LOG(LogAls, Warning, TEXT("%hs: Trying to lock a rotation when it is already locked!"), __FUNCTION__);
 		return;
 	}
 
@@ -1436,7 +1436,7 @@ void AAlsCharacter::UnLockRotation()
 {
 	if (!LocomotionState.bRotationLocked)
 	{
-		UE_LOG(LogAls, Log, __FUNCTION__ TEXT(": Trying to unlock a rotation when it is already unlocked!"));
+		UE_LOG(LogAls, Log, TEXT("%hs: Trying to unlock a rotation when it is already unlocked!"), __FUNCTION__);
 		return;
 	}
 
