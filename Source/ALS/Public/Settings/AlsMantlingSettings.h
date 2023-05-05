@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Engine/DataAsset.h"
+#include "Engine/EngineTypes.h"
 #include "Engine/NetSerialization.h"
 #include "Engine/EngineTypes.h"
 #include "AlsMantlingSettings.generated.h"
@@ -106,6 +107,7 @@ struct ALS_API FAlsGeneralMantlingSettings
 {
 	GENERATED_BODY()
 
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS")
 	bool bAllowMantling{true};
 
@@ -130,4 +132,12 @@ struct ALS_API FAlsGeneralMantlingSettings
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ALS")
 	TArray<TEnumAsByte<EObjectTypeQuery>> MantlingTraceObjectTypes;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ALS")
+	FCollisionResponseContainer MantlingTraceResponses{ECR_Ignore};
+
+public:
+#if WITH_EDITOR
+	void PostEditChangeProperty(const FPropertyChangedEvent& PropertyChangedEvent);
+#endif
 };

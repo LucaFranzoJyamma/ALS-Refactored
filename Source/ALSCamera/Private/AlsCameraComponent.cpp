@@ -1,6 +1,7 @@
 #include "AlsCameraComponent.h"
 
 #include "AlsCameraSettings.h"
+#include "DrawDebugHelpers.h"
 #include "Animation/AnimInstance.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/WorldSettings.h"
@@ -71,7 +72,19 @@ void UAlsCameraComponent::TickComponent(float DeltaTime, const ELevelTick TickTy
 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	TickCamera(DeltaTime);
+	// Skip camera tick until parallel animation evaluation completes.
+
+	if (!IsRunningParallelEvaluation())
+	{
+		TickCamera(DeltaTime);
+	}
+}
+
+void UAlsCameraComponent::CompleteParallelAnimationEvaluation(const bool bDoPostAnimationEvaluation)
+{
+	Super::CompleteParallelAnimationEvaluation(bDoPostAnimationEvaluation);
+
+	TickCamera(GetAnimInstance()->GetDeltaSeconds());
 }
 
 FVector UAlsCameraComponent::GetFirstPersonCameraLocation() const
@@ -118,9 +131,14 @@ void UAlsCameraComponent::TickCamera(const float DeltaTime, bool bAllowLag)
 		return;
 	}
 
+	ALS_ENSURE_MESSAGE(!IsRunningParallelEvaluation(),
+	                   TEXT("%hs should not be called during parallel animation evaluation, because accessing animation curves")
+	                   TEXT(" causes the game thread to wait for the parallel task to complete, resulting in performance degradation."),
+	                   __FUNCTION__);
+
 #if ENABLE_DRAW_DEBUG
 	const auto bDisplayDebugCameraShapes{
-		UAlsUtility::ShouldDisplayDebugForActor(GetOwner(), UAlsCameraConstants::CameraShapesDisplayName())
+		UAlsUtility::ShouldDisplayDebugForActor(GetOwner(), UAlsCameraConstants::CameraShapesDebugDisplayName())
 	};
 #else
 	const auto bDisplayDebugCameraShapes{false};
@@ -329,7 +347,6 @@ FVector UAlsCameraComponent::CalculatePivotLagLocation(const FQuat& CameraYawRot
 	const auto LocationLagY{GetAnimInstance()->GetCurveValue(UAlsCameraConstants::LocationLagYCurveName())};
 	const auto LocationLagZ{GetAnimInstance()->GetCurveValue(UAlsCameraConstants::LocationLagZCurveName())};
 
-	// ReSharper disable once CppRedundantParentheses
 	if (!Settings->bEnableCameraLagSubstepping ||
 	    DeltaTime <= Settings->CameraLagSubstepping.LagSubstepDeltaTime ||
 	    (LocationLagX <= 0.0f && LocationLagY <= 0.0f && LocationLagZ <= 0.0f))
@@ -404,7 +421,7 @@ FVector UAlsCameraComponent::CalculateCameraTrace(const FVector& CameraTargetLoc
 {
 #if ENABLE_DRAW_DEBUG
 	const auto bDisplayDebugCameraTraces{
-		UAlsUtility::ShouldDisplayDebugForActor(GetOwner(), UAlsCameraConstants::CameraTracesDisplayName())
+		UAlsUtility::ShouldDisplayDebugForActor(GetOwner(), UAlsCameraConstants::CameraTracesDebugDisplayName())
 	};
 #else
 	const auto bDisplayDebugCameraTraces{false};
@@ -412,7 +429,7 @@ FVector UAlsCameraComponent::CalculateCameraTrace(const FVector& CameraTargetLoc
 
 	const auto MeshScale{Character->GetMesh()->GetComponentScale().Z};
 
-	static const FName MainTraceTag{__FUNCTION__ TEXTVIEW(" (Main Trace)")};
+	static const FName MainTraceTag{FString::Printf(TEXT("%hs (Main Trace)"), __FUNCTION__)};
 
 	auto TraceStart{
 		FMath::Lerp(
@@ -438,7 +455,7 @@ FVector UAlsCameraComponent::CalculateCameraTrace(const FVector& CameraTargetLoc
 		}
 		else if (TryAdjustLocationBlockedByGeometry(TraceStart, bDisplayDebugCameraTraces))
 		{
-			static const FName AdjustedTraceTag{__FUNCTION__ TEXTVIEW(" (Adjusted Trace)")};
+			static const FName AdjustedTraceTag{FString::Printf(TEXT("%hs (Adjusted Trace)"), __FUNCTION__)};
 
 			GetWorld()->SweepSingleByChannel(Hit, TraceStart, TraceEnd, FQuat::Identity, TraceChanel,
 			                                 CollisionShape, {AdjustedTraceTag, false, GetOwner()});
@@ -496,7 +513,12 @@ bool UAlsCameraComponent::TryAdjustLocationBlockedByGeometry(FVector& Location, 
 	static TArray<FOverlapResult> Overlaps;
 	check(Overlaps.IsEmpty())
 
-	static const FName OverlapMultiTraceTag{__FUNCTION__ TEXTVIEW(" (Overlap Multi)")};
+	ON_SCOPE_EXIT
+	{
+		Overlaps.Reset();
+	};
+
+	static const FName OverlapMultiTraceTag{FString::Printf(TEXT("%hs (Overlap Multi)"), __FUNCTION__)};
 
 	if (!GetWorld()->OverlapMultiByChannel(Overlaps, Location, FQuat::Identity, TraceChanel,
 	                                       CollisionShape, {OverlapMultiTraceTag, false, GetOwner()}))
@@ -521,7 +543,6 @@ bool UAlsCameraComponent::TryAdjustLocationBlockedByGeometry(FVector& Location, 
 		if (OverlapBodyInstance == nullptr ||
 		    !OverlapBodyInstance->OverlapTest(Location, FQuat::Identity, CollisionShape, &MtdResult))
 		{
-			Overlaps.Reset();
 			return false;
 		}
 
@@ -531,8 +552,6 @@ bool UAlsCameraComponent::TryAdjustLocationBlockedByGeometry(FVector& Location, 
 			bAnyValidBlock = true;
 		}
 	}
-
-	Overlaps.Reset();
 
 	if (!bAnyValidBlock)
 	{
@@ -559,7 +578,7 @@ bool UAlsCameraComponent::TryAdjustLocationBlockedByGeometry(FVector& Location, 
 
 	Location += Adjustment;
 
-	static const FName FreeSpaceTraceTag{__FUNCTION__ TEXTVIEW(" (Free Space Overlap)")};
+	static const FName FreeSpaceTraceTag{FString::Printf(TEXT("%hs (Free Space Overlap)"), __FUNCTION__)};
 
 	return !GetWorld()->OverlapBlockingTestByChannel(Location, FQuat::Identity, TraceChanel,
 	                                                 FCollisionShape::MakeSphere(Settings->ThirdPerson.TraceRadius * MeshScale),

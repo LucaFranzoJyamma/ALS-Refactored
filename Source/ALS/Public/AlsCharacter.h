@@ -1,7 +1,6 @@
 #pragma once
 
 #include "GameFramework/Character.h"
-#include "Settings/AlsMantlingSettings.h"
 #include "State/AlsLocomotionState.h"
 #include "State/AlsMovementBaseState.h"
 #include "State/AlsRagdollingState.h"
@@ -10,10 +9,13 @@
 #include "Utility/AlsGameplayTags.h"
 #include "AlsCharacter.generated.h"
 
+struct FAlsMantlingParameters;
+struct FAlsMantlingTraceSettings;
 class UAlsCharacterMovementComponent;
 class UAlsCharacterSettings;
 class UAlsMovementSettings;
 class UAlsAnimationInstance;
+class UAlsMantlingSettings;
 
 UCLASS(AutoExpandCategories = ("Settings|Als Character", "Settings|Als Character|Desired State", "State|Als Character"))
 class ALS_API AAlsCharacter : public ACharacter
@@ -35,7 +37,7 @@ protected:
 	bool bDesiredAiming;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Als Character|Desired State", Replicated, meta=(Categories="Als.RotationMode"))//@JYAMMA MOD: @TagFilter filtred gameplay tags
-	FGameplayTag DesiredRotationMode{AlsRotationModeTags::LookingDirection};
+	FGameplayTag DesiredRotationMode{AlsRotationModeTags::ViewDirection};
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Als Character|Desired State", Replicated, meta=(Categories="Als.Stance"))//@JYAMMA MOD: @TagFilter filtred gameplay tags
 	FGameplayTag DesiredStance{AlsStanceTags::Standing};
@@ -57,7 +59,7 @@ protected:
 	FGameplayTag LocomotionMode{AlsLocomotionModeTags::Grounded};
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State|Als Character", Transient)
-	FGameplayTag RotationMode{AlsRotationModeTags::LookingDirection};
+	FGameplayTag RotationMode{AlsRotationModeTags::ViewDirection};
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State|Als Character", Transient)
 	FGameplayTag Stance{AlsStanceTags::Standing};
@@ -81,6 +83,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State|Als Character", Transient, Replicated)
 	FVector_NetQuantizeNormal InputDirection;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State|Als Character",
+		Transient, Replicated, Meta = (ClampMin = -180, ClampMax = 180, ForceUnits = "deg"))
+	float DesiredVelocityYawAngle;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State|Als Character", Transient)
 	FAlsLocomotionState LocomotionState;
@@ -127,6 +133,8 @@ public:
 	virtual void Restart() override;
 
 private:
+	void RefreshUsingAbsoluteRotation() const;
+
 	void RefreshVisibilityBasedAnimTickOption() const;
 
 	void RefreshMovementBase();
@@ -341,6 +349,8 @@ public:
 private:
 	void SetInputDirection(FVector NewInputDirection);
 
+	void SetDesiredVelocityYawAngle(float NewDesiredVelocityYawAngle);
+
 	void RefreshLocomotionLocationAndRotation();
 
 	void RefreshLocomotionEarly();
@@ -410,22 +420,6 @@ protected:
 public:
 	void RefreshCurrentRotationInstant(); 
 	//@JYAMMA MOD: Refresh current Rotation Instant - End
-	
-	// Rotation Lock
-
-public:
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character")
-	void LockRotation(float TargetYawAngle);
-
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character")
-	void UnLockRotation();
-
-private:
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastLockRotation(float TargetYawAngle);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastUnLockRotation();
 
 	// Rolling
 
@@ -459,7 +453,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Als Character")
 	bool IsMantlingAllowedToStart() const;
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character")
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character", Meta = (ReturnDisplayName = "Success"))
 	bool TryStartMantlingGrounded();
 
 private:
@@ -515,7 +509,7 @@ protected:
 public:
 	bool IsRagdollingAllowedToStop() const;
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character")
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Character", Meta = (ReturnDisplayName = "Success"))
 	bool TryStopRagdolling();
 
 private:

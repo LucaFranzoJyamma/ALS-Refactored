@@ -1,7 +1,8 @@
 #include "AlsAnimationInstance.h"
 
+#include "AlsAnimationInstanceProxy.h"
 #include "AlsCharacter.h"
-#include "Animation/AnimInstanceProxy.h"
+#include "DrawDebugHelpers.h"
 #include "Components/CapsuleComponent.h"
 #include "Curves/CurveFloat.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -64,11 +65,12 @@ void UAlsAnimationInstance::NativeUpdateAnimation(const float DeltaTime)
 
 		// Manually synchronize mesh rotation with character rotation.
 
-		GetSkelMeshComponent()->SetWorldRotation(ActorTransform.GetRotation() * Character->GetBaseRotationOffset());
+		GetSkelMeshComponent()->MoveComponent(
+			FVector::ZeroVector, ActorTransform.GetRotation() * Character->GetBaseRotationOffset(), false);
 
-		// Re-cache transforms because the skeletal mesh transform has changed before.
+		// Re-cache proxy transforms to match the modified mesh transform.
 
-		const auto& Proxy{GetProxyOnAnyThread<FAnimInstanceProxy>()};
+		const auto& Proxy{GetProxyOnGameThread<FAnimInstanceProxy>()};
 
 		const_cast<FTransform&>(Proxy.GetComponentTransform()) = GetSkelMeshComponent()->GetComponentTransform();
 		const_cast<FTransform&>(Proxy.GetComponentRelativeTransform()) = GetSkelMeshComponent()->GetRelativeTransform();
@@ -76,7 +78,7 @@ void UAlsAnimationInstance::NativeUpdateAnimation(const float DeltaTime)
 	}
 
 #if WITH_EDITORONLY_DATA && ENABLE_DRAW_DEBUG
-	bDisplayDebugTraces = UAlsUtility::ShouldDisplayDebugForActor(Character, UAlsConstants::TracesDisplayName());
+	bDisplayDebugTraces = UAlsUtility::ShouldDisplayDebugForActor(Character, UAlsConstants::TracesDebugDisplayName());
 #endif
 
 	ViewMode = Character->GetViewMode();
@@ -160,6 +162,29 @@ void UAlsAnimationInstance::NativePostEvaluateAnimation()
 	bPendingUpdate = false;
 }
 
+FAnimInstanceProxy* UAlsAnimationInstance::CreateAnimInstanceProxy()
+{
+	return new FAlsAnimationInstanceProxy{this};
+}
+
+FAlsControlRigInput UAlsAnimationInstance::GetControlRigInput() const
+{
+	return {
+		!IsValid(Settings) || Settings->General.bUseHandIkBones,
+		!IsValid(Settings) || Settings->General.bUseFootIkBones,
+		GroundedState.VelocityBlend.ForwardAmount,
+		GroundedState.VelocityBlend.BackwardAmount,
+		ViewState.SpineRotation.YawAngle,
+		FeetState.Left.IkRotation,
+		FeetState.Left.IkLocation,
+		FeetState.Left.IkAmount,
+		FeetState.Right.IkRotation,
+		FeetState.Right.IkLocation,
+		FeetState.Right.IkAmount,
+		FeetState.MinMaxPelvisOffsetZ,
+	};
+}
+
 void UAlsAnimationInstance::RefreshMovementBaseOnGameThread()
 {
 	const auto& BasedMovement{Character->GetBasedMovement()};
@@ -190,51 +215,73 @@ void UAlsAnimationInstance::RefreshMovementBaseOnGameThread()
 
 void UAlsAnimationInstance::RefreshLayering()
 {
-	LayeringState.HeadBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerHeadCurveName());
-	LayeringState.HeadAdditiveBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerHeadAdditiveCurveName());
-	LayeringState.HeadSlotBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerHeadSlotCurveName());
+	const auto& Curves{GetProxyOnAnyThread<FAlsAnimationInstanceProxy>().GetAnimationCurves(EAnimCurveType::AttributeCurve)};
+
+	static const auto GetCurveValue{
+		[](const TMap<FName, float>& Curves, const FName& CurveName) -> float
+		{
+			const auto* Value{Curves.Find(CurveName)};
+
+			return Value != nullptr ? *Value : 0.0f;
+		}
+	};
+
+	LayeringState.HeadBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerHeadCurveName());
+	LayeringState.HeadAdditiveBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerHeadAdditiveCurveName());
+	LayeringState.HeadSlotBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerHeadSlotCurveName());
 
 	// The mesh space blend will always be 1 unless the local space blend is 1.
 
-	LayeringState.ArmLeftBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerArmLeftCurveName());
-	LayeringState.ArmLeftAdditiveBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerArmLeftAdditiveCurveName());
-	LayeringState.ArmLeftSlotBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerArmLeftSlotCurveName());
-	LayeringState.ArmLeftLocalSpaceBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerArmLeftLocalSpaceCurveName());
+	LayeringState.ArmLeftBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerArmLeftCurveName());
+	LayeringState.ArmLeftAdditiveBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerArmLeftAdditiveCurveName());
+	LayeringState.ArmLeftSlotBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerArmLeftSlotCurveName());
+	LayeringState.ArmLeftLocalSpaceBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerArmLeftLocalSpaceCurveName());
 	LayeringState.ArmLeftMeshSpaceBlendAmount = !FAnimWeight::IsFullWeight(LayeringState.ArmLeftLocalSpaceBlendAmount);
 
 	// The mesh space blend will always be 1 unless the local space blend is 1.
 
-	LayeringState.ArmRightBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerArmRightCurveName());
-	LayeringState.ArmRightAdditiveBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerArmRightAdditiveCurveName());
-	LayeringState.ArmRightSlotBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerArmRightSlotCurveName());
-	LayeringState.ArmRightLocalSpaceBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerArmRightLocalSpaceCurveName());
+	LayeringState.ArmRightBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerArmRightCurveName());
+	LayeringState.ArmRightAdditiveBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerArmRightAdditiveCurveName());
+	LayeringState.ArmRightSlotBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerArmRightSlotCurveName());
+	LayeringState.ArmRightLocalSpaceBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerArmRightLocalSpaceCurveName());
 	LayeringState.ArmRightMeshSpaceBlendAmount = !FAnimWeight::IsFullWeight(LayeringState.ArmRightLocalSpaceBlendAmount);
 
-	LayeringState.HandLeftBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerHandLeftCurveName());
-	LayeringState.HandRightBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerHandRightCurveName());
+	LayeringState.HandLeftBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerHandLeftCurveName());
+	LayeringState.HandRightBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerHandRightCurveName());
 
-	LayeringState.SpineBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerSpineCurveName());
-	LayeringState.SpineAdditiveBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerSpineAdditiveCurveName());
-	LayeringState.SpineSlotBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerSpineSlotCurveName());
+	LayeringState.SpineBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerSpineCurveName());
+	LayeringState.SpineAdditiveBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerSpineAdditiveCurveName());
+	LayeringState.SpineSlotBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerSpineSlotCurveName());
 
-	LayeringState.PelvisBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerPelvisCurveName());
-	LayeringState.PelvisSlotBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerPelvisSlotCurveName());
+	LayeringState.PelvisBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerPelvisCurveName());
+	LayeringState.PelvisSlotBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerPelvisSlotCurveName());
 
-	LayeringState.LegsBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerLegsCurveName());
-	LayeringState.LegsSlotBlendAmount = GetCurveValueClamped01(UAlsConstants::LayerLegsSlotCurveName());
+	LayeringState.LegsBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerLegsCurveName());
+	LayeringState.LegsSlotBlendAmount = GetCurveValue(Curves, UAlsConstants::LayerLegsSlotCurveName());
 }
 
 void UAlsAnimationInstance::RefreshPose()
 {
-	PoseState.GroundedAmount = GetCurveValueClamped01(UAlsConstants::PoseGroundedCurveName());
-	PoseState.InAirAmount = GetCurveValueClamped01(UAlsConstants::PoseInAirCurveName());
+	const auto& Curves{GetProxyOnAnyThread<FAlsAnimationInstanceProxy>().GetAnimationCurves(EAnimCurveType::AttributeCurve)};
 
-	PoseState.StandingAmount = GetCurveValueClamped01(UAlsConstants::PoseStandingCurveName());
-	PoseState.CrouchingAmount = GetCurveValueClamped01(UAlsConstants::PoseCrouchingCurveName());
+	static const auto GetCurveValue{
+		[](const TMap<FName, float>& Curves, const FName& CurveName) -> float
+		{
+			const auto* Value{Curves.Find(CurveName)};
 
-	PoseState.MovingAmount = GetCurveValueClamped01(UAlsConstants::PoseMovingCurveName());
+			return Value != nullptr ? *Value : 0.0f;
+		}
+	};
 
-	PoseState.GaitAmount = FMath::Clamp(GetCurveValue(UAlsConstants::PoseGaitCurveName()), 0.0f, 3.0f);
+	PoseState.GroundedAmount = GetCurveValue(Curves, UAlsConstants::PoseGroundedCurveName());
+	PoseState.InAirAmount = GetCurveValue(Curves, UAlsConstants::PoseInAirCurveName());
+
+	PoseState.StandingAmount = GetCurveValue(Curves, UAlsConstants::PoseStandingCurveName());
+	PoseState.CrouchingAmount = GetCurveValue(Curves, UAlsConstants::PoseCrouchingCurveName());
+
+	PoseState.MovingAmount = GetCurveValue(Curves, UAlsConstants::PoseMovingCurveName());
+
+	PoseState.GaitAmount = FMath::Clamp(GetCurveValue(Curves, UAlsConstants::PoseGaitCurveName()), 0.0f, 3.0f);
 	PoseState.GaitWalkingAmount = UAlsMath::Clamp01(PoseState.GaitAmount);
 	PoseState.GaitRunningAmount = UAlsMath::Clamp01(PoseState.GaitAmount - 1.0f);
 	PoseState.GaitSprintingAmount = UAlsMath::Clamp01(PoseState.GaitAmount - 2.0f);
@@ -491,7 +538,6 @@ void UAlsAnimationInstance::RefreshLocomotionOnGameThread()
 
 	LocomotionState.bMoving = Locomotion.bMoving;
 
-	// ReSharper disable once CppRedundantParentheses
 	LocomotionState.bMovingSmooth = (Locomotion.bHasInput && Locomotion.bHasSpeed) ||
 	                                Locomotion.Speed > Settings->General.MovingSmoothSpeedThreshold;
 
@@ -575,10 +621,10 @@ void UAlsAnimationInstance::RefreshGrounded(const float DeltaTime)
 
 void UAlsAnimationInstance::RefreshMovementDirection()
 {
-	// Calculate the movement direction. This value represents the direction the character is moving relative to the camera during
-	// the looking direction / aiming modes and is used in the cycle blending to blend to the appropriate directional states.
+	// Calculate the movement direction. This value represents the direction the character is moving relative
+	// to the camera and is used in the cycle blending to blend to the appropriate directional states.
 
-	if (RotationMode == AlsRotationModeTags::VelocityDirection || Gait == AlsGaitTags::Sprinting)
+	if (Gait == AlsGaitTags::Sprinting)
 	{
 		GroundedState.MovementDirection = EAlsMovementDirection::Forward;
 		return;
@@ -840,16 +886,10 @@ void UAlsAnimationInstance::RefreshGroundPredictionAmount()
 		                                                      InAirState.VerticalVelocity) * LocomotionState.Scale
 	};
 
-	FCollisionObjectQueryParams ObjectQueryParameters;
-	for (const auto ObjectType : Settings->InAir.GroundPredictionSweepObjectTypes)
-	{
-		ObjectQueryParameters.AddObjectTypesToQuery(UCollisionProfile::Get()->ConvertToCollisionChannel(false, ObjectType));
-	}
-
 	FHitResult Hit;
-	GetWorld()->SweepSingleByObjectType(Hit, SweepStartLocation, SweepStartLocation + SweepVector, FQuat::Identity, ObjectQueryParameters,
-	                                    FCollisionShape::MakeCapsule(LocomotionState.CapsuleRadius, LocomotionState.CapsuleHalfHeight),
-	                                    {__FUNCTION__, false, Character});
+	GetWorld()->SweepSingleByChannel(Hit, SweepStartLocation, SweepStartLocation + SweepVector, FQuat::Identity, ECC_WorldStatic,
+	                                 FCollisionShape::MakeCapsule(LocomotionState.CapsuleRadius, LocomotionState.CapsuleHalfHeight),
+	                                 {__FUNCTION__, false, Character}, Settings->InAir.GroundPredictionSweepResponses);
 
 	const auto bGroundValid{Hit.IsValidBlockingHit() && Hit.ImpactNormal.Z >= LocomotionState.WalkableFloorZ};
 
@@ -1003,7 +1043,6 @@ void UAlsAnimationInstance::ProcessFootLockTeleport(FAlsFootState& FootState) co
 
 void UAlsAnimationInstance::ProcessFootLockBaseChange(FAlsFootState& FootState, const FTransform& ComponentTransformInverse) const
 {
-	// ReSharper disable once CppRedundantParentheses
 	if ((!bPendingUpdate && !MovementBase.bBaseChanged) || !FAnimWeight::IsRelevant(FootState.IkAmount * FootState.LockAmount))
 	{
 		return;
@@ -1240,9 +1279,9 @@ void UAlsAnimationInstance::RefreshFootOffset(FAlsFootState& FootState, const fl
 		static constexpr auto LocationInterpolationDampingRatio{4.0f};
 		static constexpr auto LocationInterpolationTargetVelocityAmount{1.0f};
 
-		FootState.OffsetLocation = UAlsMath::SpringDamp(FootState.OffsetLocation, FootState.OffsetTargetLocation,
-		                                                FootState.OffsetSpringState, DeltaTime, LocationInterpolationFrequency,
-		                                                LocationInterpolationDampingRatio, LocationInterpolationTargetVelocityAmount);
+		FootState.OffsetLocation = UAlsMath::SpringDampVector(FootState.OffsetLocation, FootState.OffsetTargetLocation,
+		                                                      FootState.OffsetSpringState, DeltaTime, LocationInterpolationFrequency,
+		                                                      LocationInterpolationDampingRatio, LocationInterpolationTargetVelocityAmount);
 
 		static constexpr auto RotationInterpolationSpeed{30.0f};
 
@@ -1524,7 +1563,7 @@ void UAlsAnimationInstance::RefreshRotateInPlace(const float DeltaTime)
 
 bool UAlsAnimationInstance::IsTurnInPlaceAllowed()
 {
-	return RotationMode == AlsRotationModeTags::LookingDirection && ViewMode != AlsViewModeTags::FirstPerson;
+	return RotationMode == AlsRotationModeTags::ViewDirection && ViewMode != AlsViewModeTags::FirstPerson;
 }
 
 void UAlsAnimationInstance::RefreshTurnInPlace(const float DeltaTime)

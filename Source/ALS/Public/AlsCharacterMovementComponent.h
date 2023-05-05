@@ -12,7 +12,7 @@ private:
 	using Super = FCharacterNetworkMoveData;
 
 public:
-	FGameplayTag RotationMode{AlsRotationModeTags::LookingDirection};
+	FGameplayTag RotationMode{AlsRotationModeTags::ViewDirection};
 
 	FGameplayTag Stance{AlsStanceTags::Standing};
 
@@ -39,7 +39,7 @@ private:
 	using Super = FSavedMove_Character;
 
 public:
-	FGameplayTag RotationMode{AlsRotationModeTags::LookingDirection};
+	FGameplayTag RotationMode{AlsRotationModeTags::ViewDirection};
 
 	FGameplayTag Stance{AlsStanceTags::Standing};
 
@@ -87,7 +87,7 @@ protected:
 	FAlsMovementGaitSettings GaitSettings;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-	FGameplayTag RotationMode{AlsRotationModeTags::LookingDirection};
+	FGameplayTag RotationMode{AlsRotationModeTags::ViewDirection};
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
 	FGameplayTag Stance{AlsStanceTags::Standing};
@@ -104,6 +104,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
 	FVector PendingPenetrationAdjustment;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
+	FVector PrePenetrationAdjustmentVelocity;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
+	bool bPrePenetrationAdjustmentVelocityValid;
 
 public:
 	FAlsPhysicsRotationDelegate OnPhysicsRotation;
@@ -181,6 +187,8 @@ public:
 	float CalculateGaitAmount() const;
 
 	void SetMovementModeLocked(bool bNewMovementModeLocked);
+
+	bool TryConsumePrePenetrationAdjustmentVelocity(FVector& OutVelocity);
 };
 
 inline const FAlsMovementGaitSettings& UAlsCharacterMovementComponent::GetGaitSettings() const

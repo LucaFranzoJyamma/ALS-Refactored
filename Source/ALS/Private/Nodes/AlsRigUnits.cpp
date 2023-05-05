@@ -1,9 +1,25 @@
 #include "Nodes/AlsRigUnits.h"
 
-#include "Units/RigUnitContext.h"
 #include "Utility/AlsMath.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AlsRigUnits)
+
+void FAlsRigVMFunction_ExponentialDecayVector::Initialize()
+{
+	bInitialized = false;
+}
+
+FAlsRigVMFunction_ExponentialDecayVector_Execute()
+{
+	if (!bInitialized)
+	{
+		Current = Target;
+
+		bInitialized = true;
+	}
+
+	Current = UAlsMath::ExponentialDecay(Current, Target, ExecuteContext.GetDeltaTime(), Lambda);
+}
 
 static bool TryCalculatePoleVector(const FVector& ALocation, const FVector& BLocation, const FVector& CLocation,
                                    FVector& ProjectionLocation, FVector& Direction)
@@ -35,46 +51,29 @@ static bool TryCalculatePoleVector(const FVector& ALocation, const FVector& BLoc
 	return true;
 }
 
-FAlsRigUnit_ExponentialDecayVector_Execute()
+void FAlsRigUnit_CalculatePoleVector::Initialize()
 {
-	DECLARE_SCOPE_HIERARCHICAL_COUNTER_RIGUNIT()
-
-	// JYAMMA MOD: Original code
-	//Current = Context.State == EControlRigState::Init
-	//	          ? Target
-	//	          : UAlsMath::ExponentialDecay(Current, Target, Context.DeltaTime, Lambda);
-	// JYAMMA MOD: BEGIN
-	Current = UAlsMath::ExponentialDecay(Current, Target, ExecuteContext.GetDeltaTime(), Lambda);
-	// JYAMMA MOD: END
+	bInitialized = false;
 }
 
 FAlsRigUnit_CalculatePoleVector_Execute()
 {
 	DECLARE_SCOPE_HIERARCHICAL_COUNTER_RIGUNIT()
 
-	const auto* Hierarchy{ ExecuteContext.Hierarchy};
+	const auto* Hierarchy{ExecuteContext.Hierarchy};
 	if (!IsValid(Hierarchy))
 	{
 		return;
 	}
 
-	// JYAMMA MOD: Original code
-	//if (ExecuteContext.State == EControlRigState::Init)
-	//{
-	//	CachedItemA.Reset();
-	//	CachedItemB.Reset();
-	//	CachedItemC.Reset();
-	//}
-	//else if (bInitial)
-	//{
-	//	return;
-	//}
-	// JYAMMA MOD: BEGIN
-	if (bInitial)
+	if (!bInitialized)
 	{
-		return;
+		CachedItemA.Reset();
+		CachedItemB.Reset();
+		CachedItemC.Reset();
+
+		bInitialized = true;
 	}
-	// JYAMMA MOD: END
 
 	if (!CachedItemA.UpdateCache(ItemA, Hierarchy) ||
 	    !CachedItemB.UpdateCache(ItemB, Hierarchy) ||
@@ -109,6 +108,11 @@ FAlsRigUnit_CalculatePoleVector_Execute()
 	bSuccess = false;
 }
 
+void FAlsRigUnit_HandIkRetargeting::Initialize()
+{
+	bInitialized = false;
+}
+
 FAlsRigUnit_HandIkRetargeting_Execute()
 {
 	DECLARE_SCOPE_HIERARCHICAL_COUNTER_RIGUNIT()
@@ -119,18 +123,21 @@ FAlsRigUnit_HandIkRetargeting_Execute()
 		return;
 	}
 
-	// JYAMMA MOD: Original code
-	//if (ExecuteContext.State == EControlRigState::Init)
-	//{
-	//	CachedLeftHandBone.Reset();
-	//	CachedLeftHandIkBone.Reset();
-	//	CachedRightHandBone.Reset();
-	//	CachedRightHandIkBone.Reset();
-	//	CachedBonesToMove.Reset();
-	//	return;
-	//}
-	// JYAMMA MOD: BEGIN
-	// JYAMMA MOD: END
+	if (!bInitialized)
+	{
+		CachedLeftHandBone.Reset();
+		CachedLeftHandIkBone.Reset();
+		CachedRightHandBone.Reset();
+		CachedRightHandIkBone.Reset();
+		CachedBonesToMove.Reset();
+
+		for (auto& Bone : CachedBonesToMove)
+		{
+			Bone.Reset();
+		}
+
+		bInitialized = true;
+	}
 
 	if (!CachedLeftHandBone.UpdateCache(LeftHandBone, Hierarchy) ||
 	    !CachedLeftHandIkBone.UpdateCache(LeftHandIkBone, Hierarchy) ||
@@ -182,22 +189,12 @@ FAlsRigUnit_HandIkRetargeting_Execute()
 
 	for (auto i{0}; i < BonesToMove.Num(); i++)
 	{
-		// JYAMMA MOD: Original code
-		//if (ExecuteContext.State == EControlRigState::Init)
-		//{
-		//	CachedBonesToMove[i].Reset();
-		//}
-		// JYAMMA MOD: BEGIN
-		// JYAMMA MOD: END
-
-		if (!CachedBonesToMove[i].UpdateCache(BonesToMove[i], Hierarchy))
+		if (CachedBonesToMove[i].UpdateCache(BonesToMove[i], Hierarchy))
 		{
-			continue;
+			auto BoneTransform{Hierarchy->GetGlobalTransform(CachedBonesToMove[i])};
+			BoneTransform.AddToTranslation(RetargetingOffset);
+
+			Hierarchy->SetGlobalTransform(CachedBonesToMove[i], BoneTransform, bPropagateToChildren);
 		}
-
-		auto BoneTransform{Hierarchy->GetGlobalTransform(CachedBonesToMove[i])};
-		BoneTransform.AddToTranslation(RetargetingOffset);
-
-		Hierarchy->SetGlobalTransform(CachedBonesToMove[i], BoneTransform, bPropagateToChildren);
 	}
 }

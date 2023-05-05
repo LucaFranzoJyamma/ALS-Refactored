@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Animation/AnimInstance.h"
+#include "Engine/World.h"
+#include "State/AlsControlRigInput.h"
 #include "State/AlsFeetState.h"
 #include "State/AlsGroundedState.h"
 #include "State/AlsInAirState.h"
@@ -17,12 +19,15 @@
 #include "Utility/AlsGameplayTags.h"
 #include "AlsAnimationInstance.generated.h"
 
+class UAlsLinkedAnimationInstance;
 class AAlsCharacter;
 
 UCLASS()
 class ALS_API UAlsAnimationInstance : public UAnimInstance
 {
 	GENERATED_BODY()
+
+	friend UAlsLinkedAnimationInstance;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings")
@@ -53,7 +58,7 @@ protected:
 	FGameplayTag LocomotionMode{AlsLocomotionModeTags::Grounded};
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-	FGameplayTag RotationMode{AlsRotationModeTags::LookingDirection};
+	FGameplayTag RotationMode{AlsRotationModeTags::ViewDirection};
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
 	FGameplayTag Stance{AlsStanceTags::Standing};
@@ -122,11 +127,19 @@ public:
 
 	virtual void NativePostEvaluateAnimation() override;
 
+protected:
+	virtual FAnimInstanceProxy* CreateAnimInstanceProxy() override;
+
 	// Core
 
 protected:
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintProtected, BlueprintThreadSafe))
+	UFUNCTION(BlueprintPure, Category = "ALS|Als Animation Instance",
+		Meta = (BlueprintProtected, BlueprintThreadSafe, ReturnDisplayName = "Setting"))
 	UAlsAnimationInstanceSettings* GetSettingsUnsafe() const;
+
+	UFUNCTION(BlueprintPure, Category = "ALS|Als Animation Instance",
+		Meta = (BlueprintProtected, BlueprintThreadSafe, ReturnDisplayName = "Rig Input"))
+	FAlsControlRigInput GetControlRigInput() const;
 
 public:
 	void MarkPendingUpdate();
@@ -152,17 +165,17 @@ private:
 
 	void RefreshSpineRotation(float DeltaTime);
 
-public:
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintThreadSafe))
+protected:
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintProtected, BlueprintThreadSafe))
 	void ReinitializeLookTowardsInput();
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintThreadSafe))
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintProtected, BlueprintThreadSafe))
 	void RefreshLookTowardsInput();
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintThreadSafe))
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintProtected, BlueprintThreadSafe))
 	void ReinitializeLookTowardsCamera();
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintThreadSafe))
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintProtected, BlueprintThreadSafe))
 	void RefreshLookTowardsCamera();
 
 	// Locomotion
@@ -175,13 +188,14 @@ private:
 public:
 	void SetGroundedEntryMode(const FGameplayTag& NewGroundedEntryMode);
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintThreadSafe))
+protected:
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintProtected, BlueprintThreadSafe))
 	void ResetGroundedEntryMode();
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintThreadSafe))
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintProtected, BlueprintThreadSafe))
 	void SetHipsDirection(EAlsHipsDirection NewHipsDirection);
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintThreadSafe))
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintProtected, BlueprintThreadSafe))
 	void ActivatePivot();
 
 private:
@@ -214,7 +228,8 @@ private:
 public:
 	void Jump();
 
-	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintThreadSafe))
+protected:
+	UFUNCTION(BlueprintCallable, Category = "ALS|Als Animation Instance", Meta = (BlueprintProtected, BlueprintThreadSafe))
 	void ResetJumped();
 
 private:

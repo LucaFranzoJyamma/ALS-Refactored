@@ -2,10 +2,10 @@
 
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "Engine/DataAsset.h"
-#include "Engine/EngineTypes.h"
-#include "Chaos/ChaosEngineInterface.h"
 #include "AlsAnimNotify_FootstepEffects.generated.h"
 
+enum ETraceTypeQuery : int;
+enum EPhysicalSurface : int;
 class USoundBase;
 class UMaterialInterface;
 class UNiagaraSystem;
@@ -142,7 +142,7 @@ protected:
 	bool bSkipEffectsWhenInAir;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Sound")
-	bool bSpawnSound{false};
+	bool bSpawnSound{true};
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings|Sound", Meta = (ClampMin = 0, ForceUnits = "x"))
 	float SoundVolumeMultiplier{1.0f};
