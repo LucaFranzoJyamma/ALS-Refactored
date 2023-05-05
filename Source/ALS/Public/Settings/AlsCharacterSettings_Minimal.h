@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "AlsCharacterSettings.h"
-#include "UObject/Object.h"
 #include "AlsCharacterSettings_Minimal.generated.h"
 
 /**
@@ -14,7 +13,10 @@ UCLASS()
 class ALS_API UAlsCharacterSettings_Minimal : public UAlsCharacterSettings
 {
 	GENERATED_BODY()
-
+public:
+	UAlsCharacterSettings_Minimal();
+		
+	
 protected:
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;

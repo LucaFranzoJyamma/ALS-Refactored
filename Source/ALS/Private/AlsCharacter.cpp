@@ -110,7 +110,10 @@ void AAlsCharacter::PreRegisterAllComponents()
 
 	LocomotionState.InputYawAngle = UE_REAL_TO_FLOAT(LocomotionState.Rotation.Yaw);
 	LocomotionState.VelocityYawAngle = UE_REAL_TO_FLOAT(LocomotionState.Rotation.Yaw);
-
+	
+	// Pass current movement settings to the movement component.
+	AlsCharacterMovement->SetMovementSettings(MovementSettings);
+	
 	Super::PreRegisterAllComponents();
 }
 
@@ -122,9 +125,7 @@ void AAlsCharacter::PostInitializeComponents()
 
 	AlsCharacterMovement->OnPhysicsRotation.AddUObject(this, &ThisClass::CharacterMovement_OnPhysicsRotation);
 
-	// Pass current movement settings to the movement component.
 
-	AlsCharacterMovement->SetMovementSettings(MovementSettings);
 
 	AnimationInstance = Cast<UAlsAnimationInstance>(GetMesh()->GetAnimInstance());
 
